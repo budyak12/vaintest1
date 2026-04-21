@@ -16,27 +16,35 @@ import {
   Trash2,
   Pencil,
   Music,
+  Crop,
+  Square,
+  Scan,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ImageEditorModal } from "./ImageEditorModal";
 
 export type MediaAlign = "left" | "center" | "right" | "wrap-left" | "wrap-right" | "full";
 export type ResizableMediaKind = "image" | "video" | "audio";
+export type ObjectFit = "contain" | "cover";
 
 interface MediaAttrs {
   src: string;
   alt: string | null;
   title: string | null;
   kind: ResizableMediaKind;
-  width: string | null; // e.g. "60%" or "320px"
-  height: string | null;
+  width: string | null; // "60%" | "320px" | "auto"
+  height: string | null; // "240px" | null
   align: MediaAlign;
   lockRatio: boolean;
+  fit: ObjectFit;
 }
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     resizableMedia: {
-      insertResizableMedia: (attrs: Partial<MediaAttrs> & { src: string; kind: ResizableMediaKind }) => ReturnType;
+      insertResizableMedia: (
+        attrs: Partial<MediaAttrs> & { src: string; kind: ResizableMediaKind },
+      ) => ReturnType;
     };
   }
 }
@@ -63,6 +71,11 @@ export const ResizableMedia = Node.create({
         parseHTML: (el) => el.getAttribute("data-lock-ratio") !== "false",
         renderHTML: (attrs) => ({ "data-lock-ratio": String(attrs.lockRatio) }),
       },
+      fit: {
+        default: "contain" as ObjectFit,
+        parseHTML: (el) => (el.getAttribute("data-fit") as ObjectFit) || "contain",
+        renderHTML: (attrs) => ({ "data-fit": attrs.fit }),
+      },
     };
   },
 
@@ -82,6 +95,7 @@ export const ResizableMedia = Node.create({
             width: node.style.width || node.getAttribute("data-width") || "100%",
             height: node.style.height || node.getAttribute("data-height") || null,
             align: (node.getAttribute("data-align") as MediaAlign) || "center",
+            fit: (node.getAttribute("data-fit") as ObjectFit) || "contain",
           };
         },
       },
@@ -94,6 +108,7 @@ export const ResizableMedia = Node.create({
       "data-resizable-media": "true",
       "data-kind": a.kind,
       "data-align": a.align,
+      "data-fit": a.fit,
       "data-width": a.width ?? "",
       "data-height": a.height ?? "",
       style: [
@@ -127,7 +142,7 @@ export const ResizableMedia = Node.create({
           src: a.src,
           alt: a.alt ?? "",
           title: a.title ?? "",
-          style: "width:100%;height:100%;display:block;object-fit:cover",
+          style: `width:100%;height:100%;display:block;object-fit:${a.fit}`,
         },
       ],
     ];
@@ -145,6 +160,7 @@ export const ResizableMedia = Node.create({
               width: "100%",
               height: null,
               lockRatio: true,
+              fit: "contain",
               alt: null,
               title: null,
               ...attrs,
@@ -164,9 +180,12 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
   const innerRef = useRef<HTMLImageElement | HTMLVideoElement | HTMLAudioElement | null>(null);
   const [editingAlt, setEditingAlt] = useState(false);
   const [draftAlt, setDraftAlt] = useState(a.alt ?? "");
+  const [showEditor, setShowEditor] = useState(false);
 
   const setAlign = (align: MediaAlign) => updateAttributes({ align });
   const toggleLock = () => updateAttributes({ lockRatio: !a.lockRatio });
+  const toggleFit = () =>
+    updateAttributes({ fit: a.fit === "cover" ? "contain" : "cover" });
 
   const replaceFile = useCallback(() => {
     const input = document.createElement("input");
@@ -186,7 +205,7 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
     input.click();
   }, [a.kind, updateAttributes]);
 
-  // Drag handles for resize
+  // Resize: use rAF and snapshot starting metrics once.
   const onResizeStart = (
     e: React.MouseEvent | React.TouchEvent,
     corner: "br" | "bl" | "tr" | "tl" | "r" | "l" | "b",
@@ -197,11 +216,28 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
     if (!container) return;
     const startRect = container.getBoundingClientRect();
     const parent = container.parentElement;
-    const parentWidth = parent?.getBoundingClientRect().width ?? startRect.width;
+    const parentWidth = parent
+      ? parent.getBoundingClientRect().width
+      : startRect.width;
     const isTouch = "touches" in e;
     const startX = isTouch ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
     const startY = isTouch ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
-    const ratio = startRect.width / Math.max(1, startRect.height);
+    const startW = startRect.width;
+    const startH = startRect.height;
+    const ratio = startW / Math.max(1, startH);
+
+    let raf = 0;
+    let pending: { w: number; h: number | null } | null = null;
+    const apply = () => {
+      raf = 0;
+      if (!pending) return;
+      const widthPct = Math.min(100, Math.max(5, (pending.w / parentWidth) * 100));
+      updateAttributes({
+        width: `${widthPct.toFixed(2)}%`,
+        height: pending.h != null ? `${Math.round(pending.h)}px` : null,
+      });
+      pending = null;
+    };
 
     const move = (ev: MouseEvent | TouchEvent) => {
       const cx = "touches" in ev ? ev.touches[0].clientX : (ev as MouseEvent).clientX;
@@ -210,25 +246,41 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
       const dy = cy - startY;
       const signX = corner.includes("l") ? -1 : 1;
       const signY = corner.startsWith("t") ? -1 : 1;
-      let newW = Math.max(60, startRect.width + dx * signX);
-      let newH = Math.max(40, startRect.height + dy * signY);
 
-      if (a.lockRatio) {
-        // Use width-driven sizing for ratio lock
-        if (corner === "b") {
-          newW = newH * ratio;
+      // Shift toggles ratio lock temporarily
+      const shift = "shiftKey" in ev ? (ev as MouseEvent).shiftKey : false;
+      const lock = a.lockRatio !== shift;
+
+      let newW: number;
+      let newH: number;
+
+      if (corner === "l" || corner === "r") {
+        newW = Math.max(40, startW + dx * signX);
+        newH = lock ? newW / ratio : startH;
+      } else if (corner === "b") {
+        newH = Math.max(30, startH + dy);
+        newW = lock ? newH * ratio : startW;
+      } else {
+        // corners: drive by larger delta for stable behaviour
+        if (Math.abs(dx) >= Math.abs(dy)) {
+          newW = Math.max(40, startW + dx * signX);
+          newH = lock ? newW / ratio : Math.max(30, startH + dy * signY);
         } else {
-          newH = newW / ratio;
+          newH = Math.max(30, startH + dy * signY);
+          newW = lock ? newH * ratio : Math.max(40, startW + dx * signX);
         }
       }
 
-      const widthPct = Math.min(100, (newW / parentWidth) * 100);
-      updateAttributes({
-        width: `${widthPct.toFixed(2)}%`,
-        height: a.lockRatio ? null : `${Math.round(newH)}px`,
-      });
+      // Width-driven nodes (image/video) always lock height when ratio locked
+      pending = {
+        w: newW,
+        h: lock ? null : newH,
+      };
+      if (!raf) raf = requestAnimationFrame(apply);
     };
     const up = () => {
+      if (raf) cancelAnimationFrame(raf);
+      apply();
       window.removeEventListener("mousemove", move);
       window.removeEventListener("mouseup", up);
       window.removeEventListener("touchmove", move);
@@ -251,6 +303,18 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
     "rm-wrapper group relative my-4",
     `rm-align-${a.align}`,
     isActive && "rm-active",
+  );
+
+  const onApplyEdited = useCallback(
+    async (blob: Blob, mime: string) => {
+      const { uploadToStorage } = await import("./upload");
+      const file = new File([blob], `edited-${Date.now()}.jpg`, { type: mime });
+      const { url } = await uploadToStorage(file, "image");
+      // Reset height — new image has its own intrinsic ratio
+      updateAttributes({ src: url, height: null });
+      setShowEditor(false);
+    },
+    [updateAttributes],
   );
 
   return (
@@ -276,7 +340,8 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             alt={a.alt ?? ""}
             title={a.title ?? undefined}
             draggable={false}
-            className="block h-full w-full select-none rounded-md object-cover"
+            className="block h-full w-full select-none rounded-md"
+            style={{ objectFit: a.fit }}
           />
         ) : a.kind === "video" ? (
           <video
@@ -347,19 +412,37 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
           </TBtn>
           <span className="mx-1 h-4 w-px bg-border" />
           <TBtn
-            title="Original size"
-            onClick={() => updateAttributes({ width: "auto", height: null })}
+            title="Reset size"
+            onClick={() => updateAttributes({ width: "100%", height: null })}
           >
-            <span className="px-1 text-[10px] font-medium">1:1</span>
+            <span className="px-1 text-[10px] font-medium">100%</span>
           </TBtn>
-          <TBtn title={a.lockRatio ? "Unlock aspect ratio" : "Lock aspect ratio"} onClick={toggleLock} active={a.lockRatio}>
+          <TBtn
+            title={a.lockRatio ? "Unlock aspect ratio (Shift while dragging)" : "Lock aspect ratio"}
+            onClick={toggleLock}
+            active={a.lockRatio}
+          >
             {a.lockRatio ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
           </TBtn>
+          {a.kind === "image" && (
+            <TBtn
+              title={a.fit === "cover" ? "Fit: cover (crop to fill)" : "Fit: contain (no crop)"}
+              onClick={toggleFit}
+              active={a.fit === "cover"}
+            >
+              {a.fit === "cover" ? <Square className="h-3.5 w-3.5" /> : <Scan className="h-3.5 w-3.5" />}
+            </TBtn>
+          )}
           <span className="mx-1 h-4 w-px bg-border" />
           {a.kind === "image" && (
-            <TBtn title="Edit alt text" onClick={() => setEditingAlt((v) => !v)} active={editingAlt}>
-              <span className="px-1 text-[10px] font-medium">ALT</span>
-            </TBtn>
+            <>
+              <TBtn title="Crop / rotate / flip" onClick={() => setShowEditor(true)}>
+                <Crop className="h-3.5 w-3.5" />
+              </TBtn>
+              <TBtn title="Edit alt text" onClick={() => setEditingAlt((v) => !v)} active={editingAlt}>
+                <span className="px-1 text-[10px] font-medium">ALT</span>
+              </TBtn>
+            </>
           )}
           <TBtn title="Replace file" onClick={replaceFile}>
             <Pencil className="h-3.5 w-3.5" />
@@ -402,6 +485,14 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             </button>
           </div>
         </div>
+      )}
+
+      {showEditor && a.kind === "image" && (
+        <ImageEditorModal
+          src={a.src}
+          onCancel={() => setShowEditor(false)}
+          onApply={onApplyEdited}
+        />
       )}
     </NodeViewWrapper>
   );
