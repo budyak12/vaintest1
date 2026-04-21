@@ -1,0 +1,120 @@
+import { Link } from "@tanstack/react-router";
+import { useEntryAuthor } from "@/lib/queries";
+import { useTimeAgo } from "@/lib/format";
+import { ActionBar } from "./ActionBar";
+import { MediaPreview } from "./MediaPreview";
+import type { ShortPost, Article, Entry } from "@/lib/types";
+
+function Avatar({ name, url }: { name: string; url?: string }) {
+  if (url) {
+    return (
+      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-border bg-subtle">
+        <img src={url} alt="" className="h-full w-full object-cover" />
+      </div>
+    );
+  }
+  return (
+    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border bg-subtle text-xs font-medium text-foreground">
+      {name.slice(0, 1).toUpperCase()}
+    </div>
+  );
+}
+
+function MetaLine({ entry }: { entry: Entry }) {
+  const { data: author } = useEntryAuthor(entry.authorId);
+  const ago = useTimeAgo(entry.createdAt);
+  const display = author?.displayName || author?.username || "user";
+  const handle = author?.username || "user";
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+      <span className="font-medium text-foreground">{display}</span>
+      <span>@{handle}</span>
+      <span>·</span>
+      <span title={new Date(entry.createdAt).toLocaleString()}>{ago}</span>
+      {entry.tags.length > 0 && (
+        <>
+          <span>·</span>
+          <span className="truncate">{entry.tags.map((t) => `#${t}`).join(" ")}</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function PostCard({ post }: { post: ShortPost }) {
+  const { data: author } = useEntryAuthor(post.authorId);
+  return (
+    <Link
+      to="/post/$postId"
+      params={{ postId: post.id }}
+      className="group block hairline-b px-1 py-5 transition-colors hover:bg-subtle/40"
+    >
+      <div className="flex gap-3">
+        <Avatar name={author?.displayName || author?.username || "u"} url={author?.avatarUrl} />
+        <div className="min-w-0 flex-1">
+          <MetaLine entry={post} />
+          <p className="mt-1.5 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
+            {post.body}
+          </p>
+          {post.media.length > 0 && (
+            <div className="mt-3">
+              <MediaPreview media={post.media} />
+            </div>
+          )}
+          <ActionBar entry={post} className="mt-3 -ml-2" />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+export function ArticleCard({ article }: { article: Article }) {
+  const { data: author } = useEntryAuthor(article.authorId);
+  return (
+    <Link
+      to="/article/$articleId"
+      params={{ articleId: article.id }}
+      className="group block hairline-b py-7 transition-colors"
+    >
+      <div className="flex gap-3">
+        <Avatar name={author?.displayName || author?.username || "u"} url={author?.avatarUrl} />
+        <div className="min-w-0 flex-1">
+          <MetaLine entry={article} />
+          <div className="mt-2 flex gap-4">
+            <div className="min-w-0 flex-1">
+              <h2 className="font-serif text-xl font-semibold leading-tight tracking-tight text-foreground transition-opacity group-hover:opacity-80 sm:text-2xl">
+                {article.title}
+              </h2>
+              {article.subtitle && (
+                <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
+                  {article.subtitle}
+                </p>
+              )}
+              <div className="mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+                Article · {article.readingMinutes} min read
+              </div>
+            </div>
+            {article.coverUrl && (
+              <div className="hidden h-24 w-32 shrink-0 overflow-hidden rounded border border-border sm:block">
+                <img
+                  src={article.coverUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+          <ActionBar entry={article} className="mt-4 -ml-2" />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+export function EntryCard({ entry }: { entry: Entry }) {
+  return entry.type === "post" ? (
+    <PostCard post={entry} />
+  ) : (
+    <ArticleCard article={entry} />
+  );
+}
