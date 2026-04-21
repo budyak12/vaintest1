@@ -5,6 +5,7 @@ import { useState } from "react";
 import appCss from "../styles.css?url";
 import { themeBootstrap } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth";
+import { useVisitLogger } from "@/lib/use-visit-logger";
 
 function NotFoundComponent() {
   return (
@@ -81,8 +82,14 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <VisitTracker />
         <Outlet />
       </AuthProvider>
     </QueryClientProvider>
   );
+}
+
+function VisitTracker() {
+  useVisitLogger();
+  return null;
 }
