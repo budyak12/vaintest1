@@ -22,8 +22,10 @@ import { Route as ArticleArticleIdRouteImport } from './routes/article.$articleI
 import { Route as AdminWriteRouteImport } from './routes/admin.write'
 import { Route as AdminTagsRouteImport } from './routes/admin.tags'
 import { Route as AdminMediaRouteImport } from './routes/admin.media'
+import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminEntriesRouteImport } from './routes/admin.entries'
 import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
+import { Route as ApiPublicLogVisitRouteImport } from './routes/api.public.log-visit'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
@@ -90,6 +92,11 @@ const AdminMediaRoute = AdminMediaRouteImport.update({
   path: '/media',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLogsRoute = AdminLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminEntriesRoute = AdminEntriesRouteImport.update({
   id: '/entries',
   path: '/entries',
@@ -99,6 +106,11 @@ const AdminCommentsRoute = AdminCommentsRouteImport.update({
   id: '/comments',
   path: '/comments',
   getParentRoute: () => AdminRoute,
+} as any)
+const ApiPublicLogVisitRoute = ApiPublicLogVisitRouteImport.update({
+  id: '/api/public/log-visit',
+  path: '/api/public/log-visit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -111,12 +123,14 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/entries': typeof AdminEntriesRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/write': typeof AdminWriteRoute
   '/article/$articleId': typeof ArticleArticleIdRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/log-visit': typeof ApiPublicLogVisitRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -127,12 +141,14 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/entries': typeof AdminEntriesRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/write': typeof AdminWriteRoute
   '/article/$articleId': typeof ArticleArticleIdRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin': typeof AdminIndexRoute
+  '/api/public/log-visit': typeof ApiPublicLogVisitRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -145,12 +161,14 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/entries': typeof AdminEntriesRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/write': typeof AdminWriteRoute
   '/article/$articleId': typeof ArticleArticleIdRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/log-visit': typeof ApiPublicLogVisitRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -164,12 +182,14 @@ export interface FileRouteTypes {
     | '/search'
     | '/admin/comments'
     | '/admin/entries'
+    | '/admin/logs'
     | '/admin/media'
     | '/admin/tags'
     | '/admin/write'
     | '/article/$articleId'
     | '/post/$postId'
     | '/admin/'
+    | '/api/public/log-visit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -180,12 +200,14 @@ export interface FileRouteTypes {
     | '/search'
     | '/admin/comments'
     | '/admin/entries'
+    | '/admin/logs'
     | '/admin/media'
     | '/admin/tags'
     | '/admin/write'
     | '/article/$articleId'
     | '/post/$postId'
     | '/admin'
+    | '/api/public/log-visit'
   id:
     | '__root__'
     | '/'
@@ -197,12 +219,14 @@ export interface FileRouteTypes {
     | '/search'
     | '/admin/comments'
     | '/admin/entries'
+    | '/admin/logs'
     | '/admin/media'
     | '/admin/tags'
     | '/admin/write'
     | '/article/$articleId'
     | '/post/$postId'
     | '/admin/'
+    | '/api/public/log-visit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -215,6 +239,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   ArticleArticleIdRoute: typeof ArticleArticleIdRoute
   PostPostIdRoute: typeof PostPostIdRoute
+  ApiPublicLogVisitRoute: typeof ApiPublicLogVisitRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -310,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMediaRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/logs': {
+      id: '/admin/logs'
+      path: '/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AdminLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/entries': {
       id: '/admin/entries'
       path: '/entries'
@@ -324,12 +356,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCommentsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/public/log-visit': {
+      id: '/api/public/log-visit'
+      path: '/api/public/log-visit'
+      fullPath: '/api/public/log-visit'
+      preLoaderRoute: typeof ApiPublicLogVisitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AdminRouteChildren {
   AdminCommentsRoute: typeof AdminCommentsRoute
   AdminEntriesRoute: typeof AdminEntriesRoute
+  AdminLogsRoute: typeof AdminLogsRoute
   AdminMediaRoute: typeof AdminMediaRoute
   AdminTagsRoute: typeof AdminTagsRoute
   AdminWriteRoute: typeof AdminWriteRoute
@@ -339,6 +379,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCommentsRoute: AdminCommentsRoute,
   AdminEntriesRoute: AdminEntriesRoute,
+  AdminLogsRoute: AdminLogsRoute,
   AdminMediaRoute: AdminMediaRoute,
   AdminTagsRoute: AdminTagsRoute,
   AdminWriteRoute: AdminWriteRoute,
@@ -357,6 +398,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   ArticleArticleIdRoute: ArticleArticleIdRoute,
   PostPostIdRoute: PostPostIdRoute,
+  ApiPublicLogVisitRoute: ApiPublicLogVisitRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

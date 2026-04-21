@@ -259,6 +259,27 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_logs: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string | null
+          path: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          path?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          path?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
