@@ -267,6 +267,11 @@
   height: 100%;
   border-radius: var(--radius);
   margin: 0;
+  object-fit: contain;
+}
+.prose-editorial figure[data-resizable-media][data-fit="cover"] img,
+.prose-editorial figure[data-resizable-media][data-fit="cover"] video {
+  object-fit: cover;
 }
 .prose-editorial figure[data-resizable-media][data-align="left"] {
   margin-left: 0;
