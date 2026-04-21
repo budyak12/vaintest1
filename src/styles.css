@@ -205,8 +205,12 @@
   }
   .prose-editorial img,
   .prose-editorial video {
-    width: 100%;
+    max-width: 100%;
     border-radius: var(--radius);
+  }
+  .prose-editorial > img,
+  .prose-editorial > video {
+    width: 100%;
     margin: 1.75rem 0;
   }
   .prose-editorial code {
@@ -245,4 +249,141 @@
     background: var(--color-foreground);
     color: var(--color-background);
   }
+}
+
+/* ============================================================
+   Resizable inline media (TipTap NodeView + published HTML)
+   ============================================================ */
+
+/* Published article: figure[data-resizable-media] */
+.prose-editorial figure[data-resizable-media] {
+  margin: 1.5rem 0;
+  max-width: 100%;
+}
+.prose-editorial figure[data-resizable-media] img,
+.prose-editorial figure[data-resizable-media] video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  margin: 0;
+}
+.prose-editorial figure[data-resizable-media][data-align="left"] {
+  margin-left: 0;
+  margin-right: auto;
+}
+.prose-editorial figure[data-resizable-media][data-align="right"] {
+  margin-left: auto;
+  margin-right: 0;
+}
+.prose-editorial figure[data-resizable-media][data-align="center"] {
+  margin-left: auto;
+  margin-right: auto;
+}
+.prose-editorial figure[data-resizable-media][data-align="full"] {
+  width: 100% !important;
+  margin-left: 0;
+  margin-right: 0;
+}
+.prose-editorial figure[data-resizable-media][data-align="wrap-left"] {
+  float: left;
+  margin: 0.25rem 1.5rem 1rem 0;
+  max-width: 60%;
+}
+.prose-editorial figure[data-resizable-media][data-align="wrap-right"] {
+  float: right;
+  margin: 0.25rem 0 1rem 1.5rem;
+  max-width: 60%;
+}
+
+/* Editor wrapper */
+.rm-editor .rm-wrapper {
+  position: relative;
+  margin: 1rem 0;
+  clear: none;
+}
+.rm-editor .rm-wrapper.rm-align-left { text-align: left; }
+.rm-editor .rm-wrapper.rm-align-center { text-align: center; }
+.rm-editor .rm-wrapper.rm-align-right { text-align: right; }
+.rm-editor .rm-wrapper .rm-frame { display: inline-block; max-width: 100%; vertical-align: top; }
+.rm-editor .rm-wrapper.rm-align-full .rm-frame { display: block; width: 100% !important; }
+.rm-editor .rm-wrapper.rm-align-wrap-left {
+  float: left;
+  margin: 0.25rem 1.5rem 1rem 0;
+  max-width: 60%;
+}
+.rm-editor .rm-wrapper.rm-align-wrap-right {
+  float: right;
+  margin: 0.25rem 0 1rem 1.5rem;
+  max-width: 60%;
+}
+.rm-editor .rm-wrapper.rm-align-wrap-left .rm-frame,
+.rm-editor .rm-wrapper.rm-align-wrap-right .rm-frame {
+  display: block;
+  width: 100%;
+}
+
+.rm-editor .rm-frame {
+  position: relative;
+  outline: 1px solid transparent;
+  transition: outline-color 120ms ease;
+}
+.rm-editor .rm-wrapper.rm-active .rm-frame,
+.rm-editor .rm-wrapper:hover .rm-frame {
+  outline-color: var(--color-ring);
+}
+
+/* Resize handles */
+.rm-handle {
+  position: absolute;
+  background: var(--color-ring);
+  border: 1px solid var(--color-background);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  z-index: 5;
+  width: 10px;
+  height: 10px;
+}
+.rm-editor .rm-wrapper:hover .rm-handle,
+.rm-editor .rm-wrapper.rm-active .rm-handle {
+  opacity: 1;
+}
+.rm-handle-tl { top: -5px; left: -5px; cursor: nwse-resize; }
+.rm-handle-tr { top: -5px; right: -5px; cursor: nesw-resize; }
+.rm-handle-bl { bottom: -5px; left: -5px; cursor: nesw-resize; }
+.rm-handle-br { bottom: -5px; right: -5px; cursor: nwse-resize; }
+.rm-handle-l  { top: 50%; left: -5px; transform: translateY(-50%); cursor: ew-resize; }
+.rm-handle-r  { top: 50%; right: -5px; transform: translateY(-50%); cursor: ew-resize; }
+.rm-handle-b  { left: 50%; bottom: -5px; transform: translateX(-50%); cursor: ns-resize; }
+
+/* Placeholder */
+.rm-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--color-muted-foreground);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Mobile: cancel float wrapping — stack full width */
+@media (max-width: 640px) {
+  .prose-editorial figure[data-resizable-media][data-align="wrap-left"],
+  .prose-editorial figure[data-resizable-media][data-align="wrap-right"],
+  .rm-editor .rm-wrapper.rm-align-wrap-left,
+  .rm-editor .rm-wrapper.rm-align-wrap-right {
+    float: none;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Clear floats after the article body */
+.prose-editorial::after {
+  content: "";
+  display: block;
+  clear: both;
 }
