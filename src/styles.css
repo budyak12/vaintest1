@@ -205,8 +205,12 @@
   }
   .prose-editorial img,
   .prose-editorial video {
-    width: 100%;
+    max-width: 100%;
     border-radius: var(--radius);
+  }
+  .prose-editorial > img,
+  .prose-editorial > video {
+    width: 100%;
     margin: 1.75rem 0;
   }
   .prose-editorial code {
