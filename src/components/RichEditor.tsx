@@ -82,7 +82,7 @@ export function RichEditor({ value, onChange, placeholder, className }: Props) {
     if (!editor) return;
     const current = editor.getHTML();
     if (value && value !== current) {
-      editor.commands.setContent(value, { emitUpdate: false });
+      editor.commands.setContent(value, false);
     }
   }, [editor, value]);
 
