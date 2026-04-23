@@ -49,10 +49,13 @@ export function mapEntry(
 }
 
 export function mapAuthor(row: ProfileRow): Author {
+  const fallback = `user-${row.id.slice(0, 6)}`;
+  const username = row.username?.trim() || fallback;
+  const displayName = row.display_name?.trim() || row.username?.trim() || fallback;
   return {
     id: row.id,
-    username: row.username ?? "",
-    displayName: row.display_name ?? row.username ?? "anonymous",
+    username,
+    displayName,
     avatarUrl: row.avatar_url ?? undefined,
     bio: row.bio ?? undefined,
     links: ((row.links as unknown) as { label: string; url: string }[]) ?? [],
