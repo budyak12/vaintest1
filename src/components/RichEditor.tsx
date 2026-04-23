@@ -6,6 +6,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Gapcursor from "@tiptap/extension-gapcursor";
+import Image from "@tiptap/extension-image";
 import {
   Bold,
   Italic,
@@ -50,6 +51,7 @@ export function RichEditor({ value, onChange, placeholder, className }: Props) {
       Placeholder.configure({ placeholder: placeholder ?? "" }),
       Dropcursor.configure({ width: 2 }),
       Gapcursor,
+      Image.configure({ inline: true, allowBase64: false, HTMLAttributes: { class: "vain-emoji" } }),
       ResizableMedia,
     ],
     content: value || "<p></p>",
