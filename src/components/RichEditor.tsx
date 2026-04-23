@@ -6,6 +6,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Gapcursor from "@tiptap/extension-gapcursor";
+import Image from "@tiptap/extension-image";
 import {
   Bold,
   Italic,
@@ -27,6 +28,8 @@ import {
 import { cn } from "@/lib/utils";
 import { ResizableMedia, type ResizableMediaKind } from "./editor/ResizableMedia";
 import { uploadToStorage, detectMediaType } from "./editor/upload";
+import { EmojiPicker } from "./EmojiPicker";
+import { emojiImgHtml } from "@/lib/emoji";
 import { toast } from "sonner";
 
 interface Props {
@@ -48,6 +51,7 @@ export function RichEditor({ value, onChange, placeholder, className }: Props) {
       Placeholder.configure({ placeholder: placeholder ?? "" }),
       Dropcursor.configure({ width: 2 }),
       Gapcursor,
+      Image.configure({ inline: true, allowBase64: false, HTMLAttributes: { class: "vain-emoji" } }),
       ResizableMedia,
     ],
     content: value || "<p></p>",
@@ -212,6 +216,12 @@ function Toolbar({
       <MediaInsertBtn kind="image" icon={<ImageIcon className="h-3.5 w-3.5" />} onPickFiles={onPickFiles} onUrl={() => insertByUrl("image")} />
       <MediaInsertBtn kind="video" icon={<Film className="h-3.5 w-3.5" />} onPickFiles={onPickFiles} onUrl={() => insertByUrl("video")} />
       <MediaInsertBtn kind="audio" icon={<Music className="h-3.5 w-3.5" />} onPickFiles={onPickFiles} onUrl={() => insertByUrl("audio")} />
+      <span className="mx-1 h-4 w-px bg-border" />
+      <EmojiPicker
+        onPick={(name) =>
+          editor.chain().focus().insertContent(emojiImgHtml(name)).run()
+        }
+      />
     </div>
   );
 }

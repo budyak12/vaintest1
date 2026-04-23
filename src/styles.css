@@ -392,3 +392,15 @@
   display: block;
   clear: both;
 }
+
+/* Inline emoji — sized to surrounding text. */
+.vain-emoji {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  margin: 0 0.05em;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
