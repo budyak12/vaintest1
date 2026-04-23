@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Save, Send, FileText, Type } from "lucide-react";
 import { RichEditor } from "@/components/RichEditor";
 import { MediaPicker } from "@/components/MediaPicker";
 import { TagInput } from "@/components/TagInput";
+import { EmojiPicker } from "@/components/EmojiPicker";
+import { emojiShortcode } from "@/lib/emoji";
 import { useEntry, useUpsertEntry } from "@/lib/queries";
 import type { Entry, Article, ShortPost } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -138,9 +140,29 @@ function ModeBtn({ active, onClick, children }: { active: boolean; onClick: () =
 }
 
 function PostEditor({ post, onChange }: { post: ShortPost; onChange: (p: ShortPost) => void }) {
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  function insertAtCursor(text: string) {
+    const ta = taRef.current;
+    if (!ta) {
+      onChange({ ...post, body: post.body + text });
+      return;
+    }
+    const start = ta.selectionStart ?? post.body.length;
+    const end = ta.selectionEnd ?? post.body.length;
+    const next = post.body.slice(0, start) + text + post.body.slice(end);
+    onChange({ ...post, body: next });
+    requestAnimationFrame(() => {
+      ta.focus();
+      const caret = start + text.length;
+      ta.setSelectionRange(caret, caret);
+    });
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <textarea
+        ref={taRef}
         autoFocus
         value={post.body}
         onChange={(e) => onChange({ ...post, body: e.target.value })}
@@ -148,6 +170,10 @@ function PostEditor({ post, onChange }: { post: ShortPost; onChange: (p: ShortPo
         rows={5}
         className="w-full resize-none border-0 bg-transparent text-xl leading-relaxed focus:outline-none"
       />
+      <div className="flex items-center gap-1 text-muted-foreground">
+        <EmojiPicker onPick={(name) => insertAtCursor(emojiShortcode(name))} />
+        <span className="text-[11px] uppercase tracking-wider">Emoji</span>
+      </div>
       <div className="hairline-t pt-4">
         <MediaPicker media={post.media} onChange={(media) => onChange({ ...post, media })} />
       </div>
