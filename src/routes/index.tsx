@@ -41,14 +41,6 @@ function FeedPage() {
 
   return (
     <Layout>
-      <div className="mb-4">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
-          A quiet feed.
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Short notes and long essays in one stream.
-        </p>
-      </div>
       <FeedFilters filter={filter} sort={sort} onFilter={setFilter} onSort={setSort} />
       <div className="mt-2 flex flex-col">
         {isLoading ? (
