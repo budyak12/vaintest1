@@ -48,9 +48,16 @@ export function renderTextWithEmoji(text: string): ReactNode {
       <img
         key={`${m.index}-${name}`}
         src={emojiUrl(name)}
-        alt={`:${name}:`}
+        alt=""
+        title={`:${name}:`}
         className="vain-emoji"
         draggable={false}
+        loading="lazy"
+        onError={(e) => {
+          // If the emoji asset fails to load on a device, hide the broken image
+          // instead of surfacing the literal shortcode via the alt attribute.
+          (e.currentTarget as HTMLImageElement).style.display = "none";
+        }}
       />,
     );
     last = m.index + m[0].length;
