@@ -25,6 +25,22 @@ import { toast } from "sonner";
 // so they roundtrip through the plain-text `comments.body` column.
 
 const MEDIA_TOKEN_RE = /\[media:(image|video|audio):([^\]|]+)(?:\|([^\]]*))?\]/g;
+// Fallback: bare URLs pointing at uploaded media. Used to render media even
+// if the token wrapper was stripped or the client that wrote the comment was
+// older than the tokenization logic.
+const BARE_URL_RE = /(https?:\/\/[^\s<>"'`\]]+)/g;
+const IMAGE_EXT_RE = /\.(png|jpe?g|gif|webp|avif|svg|bmp)(\?|#|$)/i;
+const VIDEO_EXT_RE = /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i;
+const AUDIO_EXT_RE = /\.(mp3|wav|ogg|m4a|aac|flac)(\?|#|$)/i;
+
+function classifyUrl(url: string): MediaType | null {
+  if (IMAGE_EXT_RE.test(url)) return "image";
+  if (VIDEO_EXT_RE.test(url)) return "video";
+  if (AUDIO_EXT_RE.test(url)) return "audio";
+  // Supabase storage URLs without an extension: assume image by default.
+  if (/\/storage\/v1\/object\/public\//.test(url)) return "image";
+  return null;
+}
 
 interface ParsedComment {
   text: string;
@@ -34,8 +50,16 @@ interface ParsedComment {
 function parseCommentBody(body: string): ParsedComment {
   const media: MediaAttachment[] = [];
   let i = 0;
-  const text = body.replace(MEDIA_TOKEN_RE, (_m, type: MediaType, url: string, alt?: string) => {
+  // 1. Extract explicit [media:...] tokens first.
+  let text = body.replace(MEDIA_TOKEN_RE, (_m, type: MediaType, url: string, alt?: string) => {
     media.push({ id: `c_${i++}`, type, url, alt: alt || undefined });
+    return "";
+  });
+  // 2. Extract bare media URLs as a safety net for older comments.
+  text = text.replace(BARE_URL_RE, (url) => {
+    const type = classifyUrl(url);
+    if (!type) return url;
+    media.push({ id: `c_${i++}`, type, url });
     return "";
   });
   return { text: text.replace(/\n{3,}/g, "\n\n").trim(), media };
