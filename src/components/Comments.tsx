@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, Trash2, Send } from "lucide-react";
+import { Heart, Trash2, Send, Paperclip, X, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import {
   useComments,
@@ -11,21 +11,111 @@ import {
 import { useTimeAgo } from "@/lib/format";
 import { compactNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Comment } from "@/lib/types";
+import type { Comment, MediaAttachment, MediaType } from "@/lib/types";
+import { EmojiPicker } from "./EmojiPicker";
+import { emojiShortcode } from "@/lib/emoji";
+import { renderTextWithEmoji } from "@/lib/emoji";
+import { MediaItem } from "./MediaPreview";
+import { uploadToStorage, detectMediaType } from "@/components/editor/upload";
+import { toast } from "sonner";
+
+/* ---------- media token (de)serialization ---------- */
+// Tokens are stored on a dedicated line inside the comment body:
+//   [media:image:https://…|alt text]
+// so they roundtrip through the plain-text `comments.body` column.
+
+const MEDIA_TOKEN_RE = /\[media:(image|video|audio):([^\]|]+)(?:\|([^\]]*))?\]/g;
+
+interface ParsedComment {
+  text: string;
+  media: MediaAttachment[];
+}
+
+function parseCommentBody(body: string): ParsedComment {
+  const media: MediaAttachment[] = [];
+  let i = 0;
+  const text = body.replace(MEDIA_TOKEN_RE, (_m, type: MediaType, url: string, alt?: string) => {
+    media.push({ id: `c_${i++}`, type, url, alt: alt || undefined });
+    return "";
+  });
+  return { text: text.replace(/\n{3,}/g, "\n\n").trim(), media };
+}
+
+function mediaToken(m: MediaAttachment): string {
+  const alt = (m.alt || "").replace(/[|\]]/g, "");
+  return `[media:${m.type}:${m.url}${alt ? `|${alt}` : ""}]`;
+}
+
+/* ---------- main component ---------- */
 
 export function Comments({ entryId }: { entryId: string }) {
   const { user, isAdmin, username } = useAuth();
   const { data: comments = [], isLoading } = useComments(entryId);
   const addComment = useAddComment();
   const [text, setText] = useState("");
+  const [attachments, setAttachments] = useState<MediaAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function insertAtCursor(snippet: string) {
+    const ta = textareaRef.current;
+    if (!ta) {
+      setText((t) => t + snippet);
+      return;
+    }
+    const start = ta.selectionStart ?? text.length;
+    const end = ta.selectionEnd ?? text.length;
+    const next = text.slice(0, start) + snippet + text.slice(end);
+    setText(next);
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + snippet.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  }
+
+  async function handleFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    setUploading(true);
+    try {
+      const newOnes: MediaAttachment[] = [];
+      for (const file of Array.from(files)) {
+        const type = detectMediaType(file);
+        if (!type) {
+          toast.error(`Unsupported file: ${file.name}`);
+          continue;
+        }
+        const { url, alt } = await uploadToStorage(file, type);
+        newOnes.push({
+          id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          type,
+          url,
+          alt,
+        });
+      }
+      if (newOnes.length) setAttachments((a) => [...a, ...newOnes]);
+    } catch (e) {
+      console.error(e);
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const body = text.trim();
-    if (!body || !user) return;
+    const trimmed = text.trim();
+    if (!user) return;
+    if (!trimmed && attachments.length === 0) return;
+    const mediaPart = attachments.map(mediaToken).join("\n");
+    const body = [trimmed, mediaPart].filter(Boolean).join(trimmed && mediaPart ? "\n\n" : "");
     await addComment.mutateAsync({ entryId, body });
     setText("");
+    setAttachments([]);
   }
+
+  const canSubmit = (text.trim().length > 0 || attachments.length > 0) && !uploading;
 
   return (
     <section className="mt-10" data-replies>
@@ -34,27 +124,74 @@ export function Comments({ entryId }: { entryId: string }) {
       </h2>
 
       {user ? (
-        <form onSubmit={submit} className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-start">
-          <div className="flex-1">
+        <form onSubmit={submit} className="mt-4 flex flex-col gap-2">
+          <div className="rounded-md border border-border bg-subtle focus-within:border-foreground/60">
             <textarea
+              ref={textareaRef}
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Write a reply…"
               rows={2}
-              className="w-full resize-none rounded-md border border-border bg-subtle px-3 py-2 text-sm focus:outline-none focus:border-foreground/60"
+              className="w-full resize-none bg-transparent px-3 py-2 text-sm focus:outline-none"
             />
-            <div className="mt-1 text-[11px] text-muted-foreground">
-              Replying as <span className="text-foreground">@{username ?? "you"}</span>
+            {attachments.length > 0 && (
+              <div className="flex flex-col gap-2 border-t border-border p-2">
+                {attachments.map((m) => (
+                  <div key={m.id} className="relative">
+                    <MediaItem media={m} />
+                    <button
+                      type="button"
+                      onClick={() => setAttachments((a) => a.filter((x) => x.id !== m.id))}
+                      className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/90 text-muted-foreground hover:text-foreground"
+                      aria-label="Remove attachment"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-1 border-t border-border px-1.5 py-1">
+              <EmojiPicker onPick={(name) => insertAtCursor(emojiShortcode(name))} />
+              <button
+                type="button"
+                title="Attach media"
+                aria-label="Attach media"
+                onClick={() => fileInputRef.current?.click()}
+                className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+              >
+                {uploading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Paperclip className="h-3.5 w-3.5" />
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*,audio/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  handleFiles(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+              <div className="ml-auto flex items-center gap-2">
+                <span className="text-[11px] text-muted-foreground">
+                  as <span className="text-foreground">@{username ?? "you"}</span>
+                </span>
+                <button
+                  type="submit"
+                  disabled={!canSubmit || addComment.isPending}
+                  className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  {addComment.isPending ? "Posting…" : "Reply"}
+                </button>
+              </div>
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={!text.trim() || addComment.isPending}
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 sm:mt-0"
-          >
-            <Send className="h-3.5 w-3.5" />
-            {addComment.isPending ? "Posting…" : "Reply"}
-          </button>
         </form>
       ) : (
         <div className="mt-4 rounded-md border border-border bg-subtle px-3 py-3 text-sm text-muted-foreground">
@@ -89,6 +226,7 @@ function CommentRow({ comment, canDelete }: { comment: Comment; canDelete: boole
   const toggleLike = useToggleCommentLike();
   const del = useDeleteComment();
   const { user } = useAuth();
+  const parsed = parseCommentBody(comment.body);
   return (
     <div className="hairline-b flex gap-3 py-4">
       <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-subtle text-xs font-medium">
@@ -100,9 +238,18 @@ function CommentRow({ comment, canDelete }: { comment: Comment; canDelete: boole
           <span>·</span>
           <span title={new Date(comment.createdAt).toLocaleString()}>{ago}</span>
         </div>
-        <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-          {comment.body}
-        </p>
+        {parsed.text && (
+          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+            {renderTextWithEmoji(parsed.text)}
+          </p>
+        )}
+        {parsed.media.length > 0 && (
+          <div className="mt-2 flex flex-col gap-2">
+            {parsed.media.map((m) => (
+              <MediaItem key={m.id} media={m} />
+            ))}
+          </div>
+        )}
         <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
           <button
             onClick={() => {
