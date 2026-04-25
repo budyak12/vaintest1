@@ -35,7 +35,8 @@ function emptyArticle(): Article {
   return {
     id: "", type: "article", authorId: "", createdAt: "", updatedAt: "",
     tags: [], draft: false, views: 0, likes: 0, comments: 0, bookmarked: false, liked: false,
-    title: "", subtitle: "", coverUrl: undefined, contentHtml: "", readingMinutes: 1, media: [],
+    title: "", subtitle: "", coverUrl: undefined, showCoverOnArticle: true,
+    contentHtml: "", readingMinutes: 1, media: [],
   };
 }
 
