@@ -194,6 +194,7 @@ function ArticleEditor({ article, onChange }: { article: Article; onChange: (a: 
       />
       <CoverPicker
         coverUrl={article.coverUrl}
+        media={article.media}
         onChange={(coverUrl) => onChange({ ...article, coverUrl })}
       />
       <input
@@ -242,94 +243,66 @@ function ArticleEditor({ article, onChange }: { article: Article; onChange: (a: 
 
 function CoverPicker({
   coverUrl,
+  media,
   onChange,
 }: {
   coverUrl?: string;
+  media: MediaAttachment[];
   onChange: (url: string | undefined) => void;
 }) {
-  const [uploading, setUploading] = useState(false);
-
-  async function handleFile(file: File) {
-    try {
-      setUploading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Sign in required to upload files");
-        return;
-      }
-      const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
-      const path = `${user.id}/cover_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage
-        .from("post-media")
-        .upload(path, file, { contentType: file.type, cacheControl: "3600", upsert: false });
-      if (error) throw error;
-      const { data } = supabase.storage.from("post-media").getPublicUrl(path);
-      onChange(data.publicUrl);
-    } catch (e) {
-      console.error(e);
-      toast.error(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  function pasteUrl() {
-    const url = window.prompt("Paste cover image URL");
-    if (url) onChange(url);
-  }
+  const images = media.filter((m) => m.type === "image");
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-        Cover image (preview)
-      </div>
-      {coverUrl ? (
-        <div className="relative overflow-hidden rounded-md border border-border bg-subtle">
-          <img
-            src={coverUrl}
-            alt=""
-            className="max-h-64 w-full object-cover"
-          />
+      <div className="flex items-center justify-between">
+        <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          Cover image (preview)
+        </div>
+        {coverUrl && (
           <button
             type="button"
             onClick={() => onChange(undefined)}
-            className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/90 text-muted-foreground hover:text-foreground"
-            title="Remove cover"
+            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-3 w-3" /> Clear
           </button>
+        )}
+      </div>
+
+      {images.length === 0 ? (
+        <div className="rounded-md border border-dashed border-border bg-subtle/40 px-3 py-4 text-xs text-muted-foreground">
+          Upload images in the Media section below — then pick one here as the cover.
         </div>
       ) : (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <div className="inline-flex items-center overflow-hidden rounded-md border border-border text-xs">
-            <label className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 text-muted-foreground transition-colors hover:bg-subtle hover:text-foreground">
-              <ImageIcon className="h-3.5 w-3.5" />
-              Upload cover
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void handleFile(f);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-            <button
-              type="button"
-              onClick={pasteUrl}
-              className="border-l border-border px-2 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-subtle hover:text-foreground"
-              title="Paste URL"
-            >
-              URL
-            </button>
-          </div>
-          {uploading && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading…
-            </span>
-          )}
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {images.map((img) => {
+            const selected = img.url === coverUrl;
+            return (
+              <button
+                key={img.id}
+                type="button"
+                onClick={() => onChange(selected ? undefined : img.url)}
+                className={cn(
+                  "group relative aspect-video overflow-hidden rounded-md border bg-subtle transition-all duration-300",
+                  selected
+                    ? "border-foreground ring-2 ring-foreground/40"
+                    : "border-border hover:border-foreground/60",
+                )}
+                title={selected ? "Selected as cover" : "Use as cover"}
+              >
+                <img
+                  src={img.url}
+                  alt={img.alt ?? ""}
+                  className="h-full w-full object-cover"
+                />
+                {selected && (
+                  <span className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
+                    <Check className="h-3 w-3" />
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
