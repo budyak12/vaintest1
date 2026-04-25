@@ -193,6 +193,10 @@ function ArticleEditor({ article, onChange }: { article: Article; onChange: (a: 
         placeholder="Title"
         className="w-full border-0 bg-transparent font-serif text-2xl font-semibold tracking-tight focus:outline-none sm:text-4xl"
       />
+      <CoverPicker
+        coverUrl={article.coverUrl}
+        onChange={(coverUrl) => onChange({ ...article, coverUrl })}
+      />
       <input
         value={article.subtitle ?? ""}
         onChange={(e) => onChange({ ...article, subtitle: e.target.value })}
