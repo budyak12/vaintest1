@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Save, Send, FileText, Type } from "lucide-react";
+import { Save, Send, FileText, Type, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { RichEditor } from "@/components/RichEditor";
 import { MediaPicker } from "@/components/MediaPicker";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { TagInput } from "@/components/TagInput";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { emojiShortcode } from "@/lib/emoji";
