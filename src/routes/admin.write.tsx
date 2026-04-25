@@ -78,8 +78,9 @@ function WriteAdmin() {
     if (asDraft) {
       navigate({ to: "/admin/entries" });
     } else if (saved) {
-      if (mode === "post") navigate({ to: "/post/$postId", params: { postId: saved.id } });
-      else navigate({ to: "/article/$articleId", params: { articleId: saved.id } });
+      const slugOrId = (saved as { slug?: string | null; id: string }).slug || saved.id;
+      if (mode === "post") navigate({ to: "/post/$postId", params: { postId: slugOrId } });
+      else navigate({ to: "/article/$articleId", params: { articleId: slugOrId } });
     }
   }
 

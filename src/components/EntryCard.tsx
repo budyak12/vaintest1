@@ -47,7 +47,7 @@ export function PostCard({ post }: { post: ShortPost }) {
   return (
     <Link
       to="/post/$postId"
-      params={{ postId: post.id }}
+      params={{ postId: post.slug || post.id }}
       className="group block hairline-b px-1 py-5 transition-colors hover:bg-subtle/40"
     >
       <div className="flex gap-3">
@@ -74,7 +74,7 @@ export function ArticleCard({ article }: { article: Article }) {
   return (
     <Link
       to="/article/$articleId"
-      params={{ articleId: article.id }}
+      params={{ articleId: article.slug || article.id }}
       className="group block hairline-b py-7 transition-colors"
     >
       <div className="flex gap-3">
