@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Save, Send, FileText, Type } from "lucide-react";
+import { Save, Send, FileText, Type, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { RichEditor } from "@/components/RichEditor";
 import { MediaPicker } from "@/components/MediaPicker";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { TagInput } from "@/components/TagInput";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { emojiShortcode } from "@/lib/emoji";
@@ -191,6 +193,10 @@ function ArticleEditor({ article, onChange }: { article: Article; onChange: (a: 
         placeholder="Title"
         className="w-full border-0 bg-transparent font-serif text-2xl font-semibold tracking-tight focus:outline-none sm:text-4xl"
       />
+      <CoverPicker
+        coverUrl={article.coverUrl}
+        onChange={(coverUrl) => onChange({ ...article, coverUrl })}
+      />
       <input
         value={article.subtitle ?? ""}
         onChange={(e) => onChange({ ...article, subtitle: e.target.value })}
@@ -231,6 +237,102 @@ function ArticleEditor({ article, onChange }: { article: Article; onChange: (a: 
         </div>
         <MediaPicker media={article.media} onChange={(media) => onChange({ ...article, media })} />
       </div>
+    </div>
+  );
+}
+
+function CoverPicker({
+  coverUrl,
+  onChange,
+}: {
+  coverUrl?: string;
+  onChange: (url: string | undefined) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFile(file: File) {
+    try {
+      setUploading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Sign in required to upload files");
+        return;
+      }
+      const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+      const path = `${user.id}/cover_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage
+        .from("post-media")
+        .upload(path, file, { contentType: file.type, cacheControl: "3600", upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from("post-media").getPublicUrl(path);
+      onChange(data.publicUrl);
+    } catch (e) {
+      console.error(e);
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function pasteUrl() {
+    const url = window.prompt("Paste cover image URL");
+    if (url) onChange(url);
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+        Cover image (preview)
+      </div>
+      {coverUrl ? (
+        <div className="relative overflow-hidden rounded-md border border-border bg-subtle">
+          <img
+            src={coverUrl}
+            alt=""
+            className="max-h-64 w-full object-cover"
+          />
+          <button
+            type="button"
+            onClick={() => onChange(undefined)}
+            className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/90 text-muted-foreground hover:text-foreground"
+            title="Remove cover"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <div className="inline-flex items-center overflow-hidden rounded-md border border-border text-xs">
+            <label className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 text-muted-foreground transition-colors hover:bg-subtle hover:text-foreground">
+              <ImageIcon className="h-3.5 w-3.5" />
+              Upload cover
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void handleFile(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={pasteUrl}
+              className="border-l border-border px-2 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-subtle hover:text-foreground"
+              title="Paste URL"
+            >
+              URL
+            </button>
+          </div>
+          {uploading && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading…
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
