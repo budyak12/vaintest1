@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Layout } from "@/components/Layout";
@@ -8,6 +8,7 @@ import { Comments } from "@/components/Comments";
 import { useEntry, useIncrementView, useEntryAuthor } from "@/lib/queries";
 import { fullDate, useTimeAgo } from "@/lib/format";
 import { renderTextWithEmoji } from "@/lib/emoji";
+import { isUuid } from "@/lib/slug";
 
 export const Route = createFileRoute("/post/$postId")({
   component: PostPage,
@@ -15,9 +16,16 @@ export const Route = createFileRoute("/post/$postId")({
 
 function PostPage() {
   const { postId } = Route.useParams();
+  const navigate = useNavigate();
   const { data: entry, isLoading } = useEntry(postId);
   const { data: author } = useEntryAuthor(entry?.authorId);
   const inc = useIncrementView();
+
+  useEffect(() => {
+    if (entry && entry.slug && isUuid(postId) && entry.slug !== postId) {
+      navigate({ to: "/post/$postId", params: { postId: entry.slug }, replace: true });
+    }
+  }, [entry, postId, navigate]);
 
   useEffect(() => {
     if (entry?.id) inc.mutate(entry.id);
