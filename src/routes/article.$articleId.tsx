@@ -55,8 +55,17 @@ function ArticlePage() {
         <h1 className="mt-4 font-serif text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl">
           {entry.title}
         </h1>
+        {entry.coverUrl && (
+          <div className="mt-5 overflow-hidden rounded-md border border-border bg-subtle">
+            <img
+              src={entry.coverUrl}
+              alt=""
+              className="h-auto max-h-[60vh] w-full object-cover sm:max-h-[420px]"
+            />
+          </div>
+        )}
         {entry.subtitle && (
-          <p className="mt-3 text-base text-muted-foreground sm:text-lg">{entry.subtitle}</p>
+          <p className="mt-4 text-base text-muted-foreground sm:text-lg">{entry.subtitle}</p>
         )}
         <div className="hairline-b mt-6 flex items-center gap-3 pb-6">
           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border bg-subtle">
@@ -74,12 +83,6 @@ function ArticlePage() {
           </div>
         </div>
       </header>
-
-      {entry.coverUrl && (
-        <div className="mb-8 overflow-hidden rounded-md border border-border">
-          <img src={entry.coverUrl} alt="" className="h-auto w-full grayscale" />
-        </div>
-      )}
 
       <div className="prose-editorial" dangerouslySetInnerHTML={{ __html: entry.contentHtml }} />
 
