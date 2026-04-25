@@ -26,6 +26,7 @@ export function mapEntry(
     comments: ctx?.comments ?? 0,
     bookmarked: ctx?.bookmarked ?? false,
     liked: ctx?.liked ?? false,
+    slug: row.slug ?? undefined,
   };
 
   if (row.type === "post") {
@@ -42,6 +43,7 @@ export function mapEntry(
     title: row.title ?? "",
     subtitle: row.subtitle ?? undefined,
     coverUrl: row.cover_url ?? undefined,
+    showCoverOnArticle: row.show_cover_on_article ?? true,
     contentHtml: row.content_html ?? "",
     readingMinutes: row.reading_minutes ?? 1,
     media: ((row.media as unknown) as MediaAttachment[]) ?? [],

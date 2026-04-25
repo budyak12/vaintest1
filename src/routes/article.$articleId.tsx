@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Layout } from "@/components/Layout";
@@ -7,6 +7,7 @@ import { MediaItem } from "@/components/MediaPreview";
 import { Comments } from "@/components/Comments";
 import { useEntry, useIncrementView, useEntryAuthor } from "@/lib/queries";
 import { fullDate } from "@/lib/format";
+import { isUuid } from "@/lib/slug";
 
 export const Route = createFileRoute("/article/$articleId")({
   component: ArticlePage,
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/article/$articleId")({
 
 function ArticlePage() {
   const { articleId } = Route.useParams();
+  const navigate = useNavigate();
   const { data: entry, isLoading } = useEntry(articleId);
   const { data: author } = useEntryAuthor(entry?.authorId);
   const inc = useIncrementView();
@@ -22,6 +24,17 @@ function ArticlePage() {
     if (entry?.id) inc.mutate(entry.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry?.id]);
+
+  // If user landed via UUID and entry has a slug, redirect to the pretty URL.
+  useEffect(() => {
+    if (entry && entry.slug && isUuid(articleId) && entry.slug !== articleId) {
+      navigate({
+        to: "/article/$articleId",
+        params: { articleId: entry.slug },
+        replace: true,
+      });
+    }
+  }, [entry, articleId, navigate]);
 
   if (isLoading) {
     return (
@@ -55,7 +68,7 @@ function ArticlePage() {
         <h1 className="mt-4 font-serif text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl">
           {entry.title}
         </h1>
-        {entry.coverUrl && (
+        {entry.coverUrl && entry.showCoverOnArticle && (
           <div className="mt-5 overflow-hidden rounded-md border border-border bg-subtle">
             <img
               src={entry.coverUrl}

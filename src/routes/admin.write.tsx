@@ -1,9 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Save, Send, FileText, Type, X, Check } from "lucide-react";
+import { Save, Send, FileText, Type } from "lucide-react";
 import { RichEditor } from "@/components/RichEditor";
 import { MediaPicker } from "@/components/MediaPicker";
-import type { MediaAttachment } from "@/lib/types";
 import { TagInput } from "@/components/TagInput";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { emojiShortcode } from "@/lib/emoji";
@@ -35,7 +34,8 @@ function emptyArticle(): Article {
   return {
     id: "", type: "article", authorId: "", createdAt: "", updatedAt: "",
     tags: [], draft: false, views: 0, likes: 0, comments: 0, bookmarked: false, liked: false,
-    title: "", subtitle: "", coverUrl: undefined, contentHtml: "", readingMinutes: 1, media: [],
+    title: "", subtitle: "", coverUrl: undefined, showCoverOnArticle: true,
+    contentHtml: "", readingMinutes: 1, media: [],
   };
 }
 
@@ -77,8 +77,9 @@ function WriteAdmin() {
     if (asDraft) {
       navigate({ to: "/admin/entries" });
     } else if (saved) {
-      if (mode === "post") navigate({ to: "/post/$postId", params: { postId: saved.id } });
-      else navigate({ to: "/article/$articleId", params: { articleId: saved.id } });
+      const slugOrId = (saved as { slug?: string | null; id: string }).slug || saved.id;
+      if (mode === "post") navigate({ to: "/post/$postId", params: { postId: slugOrId } });
+      else navigate({ to: "/article/$articleId", params: { articleId: slugOrId } });
     }
   }
 
@@ -192,11 +193,39 @@ function ArticleEditor({ article, onChange }: { article: Article; onChange: (a: 
         placeholder="Title"
         className="w-full border-0 bg-transparent font-serif text-2xl font-semibold tracking-tight focus:outline-none sm:text-4xl"
       />
-      <CoverPicker
-        coverUrl={article.coverUrl}
-        media={article.media}
-        onChange={(coverUrl) => onChange({ ...article, coverUrl })}
-      />
+
+      {/* Cover preview + visibility toggle */}
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Cover image (preview)
+          </div>
+          <label className="inline-flex cursor-pointer select-none items-center gap-2 text-xs text-muted-foreground">
+            <span>Show on article page</span>
+            <span className="relative inline-block h-4 w-7">
+              <input
+                type="checkbox"
+                checked={article.showCoverOnArticle}
+                onChange={(e) => onChange({ ...article, showCoverOnArticle: e.target.checked })}
+                className="peer sr-only"
+              />
+              <span className="absolute inset-0 rounded-full bg-border transition-colors duration-300 peer-checked:bg-foreground" />
+              <span className="absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-background transition-transform duration-300 peer-checked:translate-x-3" />
+            </span>
+          </label>
+        </div>
+        {article.coverUrl ? (
+          <div className="overflow-hidden rounded-md border border-border bg-subtle">
+            <img src={article.coverUrl} alt="" className="h-auto max-h-64 w-full object-contain" />
+          </div>
+        ) : (
+          <div className="rounded-md border border-dashed border-border bg-subtle/40 px-3 py-3 text-xs text-muted-foreground">
+            Add an image in the Media section below and tap{" "}
+            <span className="font-medium text-foreground">"Set as cover"</span> on it. The cover always appears on the home feed; the toggle above controls the article page only.
+          </div>
+        )}
+      </div>
+
       <input
         value={article.subtitle ?? ""}
         onChange={(e) => onChange({ ...article, subtitle: e.target.value })}
@@ -204,10 +233,7 @@ function ArticleEditor({ article, onChange }: { article: Article; onChange: (a: 
         className="w-full border-0 bg-transparent text-base text-muted-foreground focus:outline-none sm:text-lg"
       />
       <div className="flex items-center gap-2">
-        <label
-          htmlFor="reading-min"
-          className="text-[11px] uppercase tracking-wider text-muted-foreground"
-        >
+        <label htmlFor="reading-min" className="text-[11px] uppercase tracking-wider text-muted-foreground">
           Reading time
         </label>
         <input
@@ -233,78 +259,24 @@ function ArticleEditor({ article, onChange }: { article: Article; onChange: (a: 
       />
       <div className="hairline-t pt-4">
         <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-          Media (image / video / audio)
+          Media (image / video / audio) — tap "Set as cover" on any image
         </div>
-        <MediaPicker media={article.media} onChange={(media) => onChange({ ...article, media })} />
+        <MediaPicker
+          media={article.media}
+          onChange={(media) => {
+            const stillThere = article.coverUrl
+              ? media.some((m) => m.type === "image" && m.url === article.coverUrl)
+              : true;
+            onChange({
+              ...article,
+              media,
+              coverUrl: stillThere ? article.coverUrl : undefined,
+            });
+          }}
+          coverUrl={article.coverUrl}
+          onCoverChange={(coverUrl) => onChange({ ...article, coverUrl })}
+        />
       </div>
-    </div>
-  );
-}
-
-function CoverPicker({
-  coverUrl,
-  media,
-  onChange,
-}: {
-  coverUrl?: string;
-  media: MediaAttachment[];
-  onChange: (url: string | undefined) => void;
-}) {
-  const images = media.filter((m) => m.type === "image");
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Cover image (preview)
-        </div>
-        {coverUrl && (
-          <button
-            type="button"
-            onClick={() => onChange(undefined)}
-            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <X className="h-3 w-3" /> Clear
-          </button>
-        )}
-      </div>
-
-      {images.length === 0 ? (
-        <div className="rounded-md border border-dashed border-border bg-subtle/40 px-3 py-4 text-xs text-muted-foreground">
-          Upload images in the Media section below — then pick one here as the cover.
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {images.map((img) => {
-            const selected = img.url === coverUrl;
-            return (
-              <button
-                key={img.id}
-                type="button"
-                onClick={() => onChange(selected ? undefined : img.url)}
-                className={cn(
-                  "group relative aspect-video overflow-hidden rounded-md border bg-subtle transition-all duration-300",
-                  selected
-                    ? "border-foreground ring-2 ring-foreground/40"
-                    : "border-border hover:border-foreground/60",
-                )}
-                title={selected ? "Selected as cover" : "Use as cover"}
-              >
-                <img
-                  src={img.url}
-                  alt={img.alt ?? ""}
-                  className="h-full w-full object-cover"
-                />
-                {selected && (
-                  <span className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
-                    <Check className="h-3 w-3" />
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

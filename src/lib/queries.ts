@@ -16,17 +16,19 @@ export function useEntries(opts: { includeDrafts?: boolean } = {}) {
   });
 }
 
-export function useEntry(id: string | undefined) {
+export function useEntry(idOrSlug: string | undefined) {
   const { user } = useAuth();
   return useQuery({
-    enabled: !!id,
-    queryKey: ["entry", id, user?.id ?? null],
+    enabled: !!idOrSlug,
+    queryKey: ["entry", idOrSlug, user?.id ?? null],
     queryFn: async () => {
-      if (!id) return null;
+      if (!idOrSlug) return null;
+      const { isUuid } = await import("./slug");
+      const column = isUuid(idOrSlug) ? "id" : "slug";
       const { data, error } = await supabase
         .from("entries")
         .select("*")
-        .eq("id", id)
+        .eq(column, idOrSlug)
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
@@ -168,7 +170,18 @@ export function useUpsertEntry() {
   return useMutation({
     mutationFn: async (entry: Partial<Entry> & { id?: string; type: "post" | "article" }) => {
       if (!user) throw new Error("Not authenticated");
+      const { buildEntrySlug } = await import("./slug");
       const isPost = entry.type === "post";
+
+      // Build a slug from title (article) or body (post). For posts we always
+      // append a short id suffix for readability + uniqueness.
+      const slug = buildEntrySlug({
+        type: entry.type,
+        title: (entry as { title?: string }).title,
+        body: (entry as { body?: string }).body,
+        id: entry.id,
+      });
+
       const base = {
         type: entry.type,
         author_id: user.id,
@@ -184,17 +197,37 @@ export function useUpsertEntry() {
             subtitle: null,
             cover_url: null,
             content_html: null,
+            slug,
           }
         : {
             ...base,
             title: (entry as { title?: string }).title ?? "",
             subtitle: (entry as { subtitle?: string }).subtitle ?? null,
             cover_url: (entry as { coverUrl?: string }).coverUrl ?? null,
+            show_cover_on_article:
+              (entry as { showCoverOnArticle?: boolean }).showCoverOnArticle ?? true,
             content_html: (entry as { contentHtml?: string }).contentHtml ?? "",
             reading_minutes: (entry as { readingMinutes?: number }).readingMinutes ?? 1,
             body: null,
             media: ((entry as { media?: unknown }).media ?? []) as never,
+            slug,
           };
+
+      // If slug collides with another row, fall back to slug-<random>.
+      async function ensureUniqueSlug(candidate: string): Promise<string> {
+        let final = candidate;
+        for (let i = 0; i < 5; i++) {
+          const { data } = await supabase
+            .from("entries")
+            .select("id")
+            .eq("slug", final)
+            .maybeSingle();
+          if (!data || data.id === entry.id) return final;
+          final = `${candidate}-${Math.random().toString(36).slice(2, 6)}`;
+        }
+        return final;
+      }
+      row.slug = await ensureUniqueSlug(slug);
 
       if (entry.id) {
         const { data, error } = await supabase
