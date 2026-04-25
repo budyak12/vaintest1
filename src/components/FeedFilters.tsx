@@ -33,7 +33,7 @@ export function FeedFilters({ filter, sort, onFilter, onSort }: Props) {
               key={f.id}
               onClick={() => onFilter(f.id)}
               className={cn(
-                "group relative overflow-hidden rounded-md px-2.5 py-1 text-xs transition-all duration-300 ease-out",
+                "group relative overflow-hidden rounded-md px-2.5 py-1 text-xs transition-all duration-[600ms] ease-out",
                 active
                   ? "bg-foreground text-background shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:-translate-y-[1px]",
@@ -42,7 +42,7 @@ export function FeedFilters({ filter, sort, onFilter, onSort }: Props) {
               {!active && (
                 <span
                   aria-hidden
-                  className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-300 ease-out group-hover:scale-100 group-hover:opacity-100"
+                  className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100"
                 />
               )}
               <span className="relative">{f.label}</span>
@@ -58,7 +58,7 @@ export function FeedFilters({ filter, sort, onFilter, onSort }: Props) {
               key={s.id}
               onClick={() => onSort(s.id)}
               className={cn(
-                "relative rounded-md px-2 py-1 text-[11px] uppercase tracking-wider transition-colors duration-300 ease-out",
+                "relative rounded-md px-2 py-1 text-[11px] uppercase tracking-wider transition-colors duration-[600ms] ease-out",
                 active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -66,7 +66,7 @@ export function FeedFilters({ filter, sort, onFilter, onSort }: Props) {
               <span
                 aria-hidden
                 className={cn(
-                  "pointer-events-none absolute inset-x-2 -bottom-0.5 h-px origin-left bg-foreground/70 transition-transform duration-300 ease-out",
+                  "pointer-events-none absolute inset-x-2 -bottom-0.5 h-px origin-left bg-foreground/70 transition-transform duration-[600ms] ease-out",
                   active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
                 )}
               />
