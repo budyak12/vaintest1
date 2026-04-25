@@ -109,6 +109,8 @@ export type Database = {
           id: string
           media: Json | null
           reading_minutes: number | null
+          show_cover_on_article: boolean
+          slug: string | null
           subtitle: string | null
           tags: string[]
           title: string | null
@@ -126,6 +128,8 @@ export type Database = {
           id?: string
           media?: Json | null
           reading_minutes?: number | null
+          show_cover_on_article?: boolean
+          slug?: string | null
           subtitle?: string | null
           tags?: string[]
           title?: string | null
@@ -143,6 +147,8 @@ export type Database = {
           id?: string
           media?: Json | null
           reading_minutes?: number | null
+          show_cover_on_article?: boolean
+          slug?: string | null
           subtitle?: string | null
           tags?: string[]
           title?: string | null
@@ -293,6 +299,7 @@ export type Database = {
         Returns: boolean
       }
       increment_view: { Args: { _entry_id: string }; Returns: undefined }
+      slugify: { Args: { _input: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "reader"
