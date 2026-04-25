@@ -31,6 +31,7 @@ export interface BaseEntry {
   comments: number;
   bookmarked: boolean;
   liked: boolean;
+  slug?: string;
 }
 
 export interface ShortPost extends BaseEntry {
@@ -44,6 +45,7 @@ export interface Article extends BaseEntry {
   title: string;
   subtitle?: string;
   coverUrl?: string;
+  showCoverOnArticle: boolean;
   contentHtml: string;
   readingMinutes: number;
   media: MediaAttachment[];
