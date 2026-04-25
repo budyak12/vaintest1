@@ -52,11 +52,19 @@ export function Header() {
                 key={it.to}
                 to={it.to}
                 className={cn(
-                  "rounded-md px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground",
-                  active && "text-foreground",
+                  "group relative overflow-hidden rounded-md px-2.5 py-1.5 transition-all duration-[600ms] ease-out",
+                  active
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:-translate-y-[1px]",
                 )}
               >
-                {it.label}
+                {!active && (
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100"
+                  />
+                )}
+                <span className="relative">{it.label}</span>
               </Link>
             );
           })}
@@ -90,8 +98,12 @@ export function Header() {
           <Link
             to="/admin"
             aria-label="Admin"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground sm:h-auto sm:w-auto sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+            className="group relative inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border text-muted-foreground transition-all duration-[600ms] ease-out hover:-translate-y-[1px] hover:text-foreground sm:h-auto sm:w-auto sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
           >
+            <span
+              aria-hidden
+              className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100"
+            />
             <Shield className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Admin</span>
           </Link>
@@ -102,8 +114,12 @@ export function Header() {
             <button
               onClick={() => void signOut()}
               aria-label="Sign out"
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground sm:h-auto sm:w-auto sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+              className="group relative inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border text-muted-foreground transition-all duration-[600ms] ease-out hover:-translate-y-[1px] hover:text-foreground sm:h-auto sm:w-auto sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
             >
+              <span
+                aria-hidden
+                className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100"
+              />
               <LogOut className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Sign out</span>
             </button>

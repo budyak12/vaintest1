@@ -81,29 +81,25 @@ export function ArticleCard({ article }: { article: Article }) {
         <Avatar name={author?.displayName || author?.username || "u"} url={author?.avatarUrl} />
         <div className="min-w-0 flex-1">
           <MetaLine entry={article} />
-          <div className="mt-2 flex gap-4">
-            <div className="min-w-0 flex-1">
-              <h2 className="font-serif text-xl font-semibold leading-tight tracking-tight text-foreground transition-opacity group-hover:opacity-80 sm:text-2xl">
-                {article.title}
-              </h2>
-              {article.subtitle && (
-                <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
-                  {article.subtitle}
-                </p>
-              )}
-              <div className="mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-                Article · {article.readingMinutes} min read
-              </div>
+          <h2 className="mt-2 font-serif text-xl font-semibold leading-tight tracking-tight text-foreground transition-opacity group-hover:opacity-80 sm:text-2xl">
+            {article.title}
+          </h2>
+          {article.coverUrl && (
+            <div className="mt-3 overflow-hidden rounded-md border border-border bg-subtle">
+              <img
+                src={article.coverUrl}
+                alt=""
+                className="h-auto w-full object-contain"
+              />
             </div>
-            {article.coverUrl && (
-              <div className="hidden h-24 w-32 shrink-0 overflow-hidden rounded border border-border sm:block">
-                <img
-                  src={article.coverUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
+          )}
+          {article.subtitle && (
+            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+              {article.subtitle}
+            </p>
+          )}
+          <div className="mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+            Article · {article.readingMinutes} min read
           </div>
           <ActionBar entry={article} className="mt-4 -ml-2" />
         </div>

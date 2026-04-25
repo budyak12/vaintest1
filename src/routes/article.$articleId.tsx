@@ -60,7 +60,7 @@ function ArticlePage() {
             <img
               src={entry.coverUrl}
               alt=""
-              className="h-auto max-h-[60vh] w-full object-cover sm:max-h-[420px]"
+              className="h-auto w-full object-contain"
             />
           </div>
         )}
