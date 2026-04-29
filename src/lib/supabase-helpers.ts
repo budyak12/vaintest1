@@ -75,6 +75,7 @@ export function mapComment(
     entryId: row.entry_id,
     authorId: row.author_id,
     authorName: name,
+    authorUsername: row.profiles?.username ?? undefined,
     body: row.body,
     createdAt: row.created_at,
     likes: ctx?.likes ?? 0,
