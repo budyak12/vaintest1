@@ -106,18 +106,25 @@ function Scrubber({
         if (e.key === "ArrowLeft") onChange(Math.max(0, value - 5));
       }}
       className={cn(
-        "group/scrub relative h-1.5 w-full cursor-pointer rounded-full bg-white/15 transition-[height] duration-150 hover:h-2",
+        "group/scrub relative h-1.5 w-full cursor-pointer rounded-full transition-[height] duration-150 hover:h-2",
+        variant === "light" ? "bg-white/15" : "bg-foreground/15",
         className,
       )}
     >
       {/* buffered */}
       <div
-        className="absolute inset-y-0 left-0 rounded-full bg-white/25"
+        className={cn(
+          "absolute inset-y-0 left-0 rounded-full",
+          variant === "light" ? "bg-white/25" : "bg-foreground/25",
+        )}
         style={{ width: `${bufPct}%` }}
       />
       {/* progress */}
       <div
-        className="absolute inset-y-0 left-0 rounded-full bg-white"
+        className={cn(
+          "absolute inset-y-0 left-0 rounded-full",
+          variant === "light" ? "bg-white" : "bg-foreground",
+        )}
         style={{ width: `${pct}%` }}
       />
       {/* thumb */}
@@ -125,7 +132,12 @@ function Scrubber({
         className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 opacity-0 transition-opacity group-hover/scrub:opacity-100"
         style={{ left: `${pct}%` }}
       >
-        <div className="h-3 w-3 rounded-full bg-white shadow" />
+        <div
+          className={cn(
+            "h-3 w-3 rounded-full shadow",
+            variant === "light" ? "bg-white" : "bg-foreground",
+          )}
+        />
       </div>
     </div>
   );
