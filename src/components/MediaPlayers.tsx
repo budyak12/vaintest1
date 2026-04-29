@@ -552,6 +552,7 @@ export function AudioPlayer({
             max={duration}
             onChange={seek}
             ariaLabel="Seek audio"
+            variant="dark"
           />
         </div>
       </div>
