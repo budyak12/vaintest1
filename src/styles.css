@@ -404,3 +404,60 @@
   user-select: none;
   -webkit-user-drag: none;
 }
+
+/* ============================================================
+   Custom media players (volume range, etc.)
+   ============================================================ */
+
+.vain-range {
+  background: transparent;
+}
+.vain-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-foreground) 25%, transparent);
+}
+.vain-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-foreground) 25%, transparent);
+}
+.vain-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-foreground);
+  margin-top: -4px;
+  border: none;
+  cursor: pointer;
+}
+.vain-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-foreground);
+  border: none;
+  cursor: pointer;
+}
+.vain-range-light::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+.vain-range-light::-moz-range-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+.vain-range-light::-webkit-slider-thumb {
+  background: #fff;
+}
+.vain-range-light::-moz-range-thumb {
+  background: #fff;
+}
+
+/* Custom video wrapper inside published article: hide native controls,
+   we render our own React player in editor + preview surfaces. For
+   already-published content the article body uses native <video>/<audio>
+   that we restyle minimally. */
+.prose-editorial figure[data-resizable-media] video::-webkit-media-controls-panel {
+  background-color: rgba(0, 0, 0, 0.5);
+}
