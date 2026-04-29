@@ -344,27 +344,9 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             style={{ objectFit: a.fit }}
           />
         ) : a.kind === "video" ? (
-          <video
-            ref={innerRef as React.RefObject<HTMLVideoElement>}
-            src={a.src}
-            controls
-            className="block h-full w-full rounded-md bg-black"
-          />
+          <VideoPlayer src={a.src} className="h-full w-full" />
         ) : (
-          <div className="flex items-center gap-3 rounded-md border border-border bg-subtle px-3 py-2.5">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border">
-              <Music className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm">{a.alt || "Audio"}</div>
-              <audio
-                ref={innerRef as React.RefObject<HTMLAudioElement>}
-                src={a.src}
-                controls
-                className="mt-1 w-full"
-              />
-            </div>
-          </div>
+          <AudioPlayer src={a.src} title={a.alt ?? undefined} />
         )}
 
         {/* Resize handles — image/video only */}
