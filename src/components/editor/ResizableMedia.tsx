@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ImageEditorModal } from "./ImageEditorModal";
+import { VideoPlayer, AudioPlayer } from "../MediaPlayers";
 
 export type MediaAlign = "left" | "center" | "right" | "wrap-left" | "wrap-right" | "full";
 export type ResizableMediaKind = "image" | "video" | "audio";
