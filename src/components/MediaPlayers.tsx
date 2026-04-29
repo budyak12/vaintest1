@@ -35,6 +35,7 @@ function Scrubber({
   onChange,
   ariaLabel,
   className,
+  variant = "light",
 }: {
   value: number;
   max: number;
@@ -42,6 +43,8 @@ function Scrubber({
   onChange: (v: number) => void;
   ariaLabel: string;
   className?: string;
+  /** "light" = on dark surface (video). "dark" = on light/subtle surface (audio). */
+  variant?: "light" | "dark";
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
