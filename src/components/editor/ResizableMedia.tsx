@@ -15,7 +15,6 @@ import {
   Unlock,
   Trash2,
   Pencil,
-  Pencil,
   Crop,
   Square,
   Scan,
