@@ -110,10 +110,27 @@ function PostMeta({
   createdAt: string;
 }) {
   const ago = useTimeAgo(createdAt);
+  const isReal = username && username !== "user";
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-      <span className="font-medium text-foreground">{authorName}</span>
-      <span>@{username}</span>
+      {isReal ? (
+        <Link
+          to="/u/$username"
+          params={{ username }}
+          className="font-medium text-foreground hover:underline"
+        >
+          {authorName}
+        </Link>
+      ) : (
+        <span className="font-medium text-foreground">{authorName}</span>
+      )}
+      {isReal ? (
+        <Link to="/u/$username" params={{ username }} className="hover:underline">
+          @{username}
+        </Link>
+      ) : (
+        <span>@{username}</span>
+      )}
       <span>·</span>
       <span title={new Date(createdAt).toLocaleString()}>{ago}</span>
     </div>
