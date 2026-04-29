@@ -258,7 +258,17 @@ function CommentRow({ comment, canDelete }: { comment: Comment; canDelete: boole
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">{comment.authorName}</span>
+          {comment.authorUsername ? (
+            <Link
+              to="/u/$username"
+              params={{ username: comment.authorUsername }}
+              className="font-medium text-foreground hover:underline"
+            >
+              {comment.authorName}
+            </Link>
+          ) : (
+            <span className="font-medium text-foreground">{comment.authorName}</span>
+          )}
           <span>·</span>
           <span title={new Date(comment.createdAt).toLocaleString()}>{ago}</span>
         </div>
