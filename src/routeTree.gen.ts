@@ -17,6 +17,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
 import { Route as ArticleArticleIdRouteImport } from './routes/article.$articleId'
 import { Route as AdminWriteRouteImport } from './routes/admin.write'
@@ -66,6 +67,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const UUsernameRoute = UUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PostPostIdRoute = PostPostIdRouteImport.update({
   id: '/post/$postId',
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/admin/write': typeof AdminWriteRoute
   '/article/$articleId': typeof ArticleArticleIdRoute
   '/post/$postId': typeof PostPostIdRoute
+  '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/log-visit': typeof ApiPublicLogVisitRoute
 }
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/admin/write': typeof AdminWriteRoute
   '/article/$articleId': typeof ArticleArticleIdRoute
   '/post/$postId': typeof PostPostIdRoute
+  '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/log-visit': typeof ApiPublicLogVisitRoute
 }
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/admin/write': typeof AdminWriteRoute
   '/article/$articleId': typeof ArticleArticleIdRoute
   '/post/$postId': typeof PostPostIdRoute
+  '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/log-visit': typeof ApiPublicLogVisitRoute
 }
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/admin/write'
     | '/article/$articleId'
     | '/post/$postId'
+    | '/u/$username'
     | '/admin/'
     | '/api/public/log-visit'
   fileRoutesByTo: FileRoutesByTo
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/admin/write'
     | '/article/$articleId'
     | '/post/$postId'
+    | '/u/$username'
     | '/admin'
     | '/api/public/log-visit'
   id:
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/admin/write'
     | '/article/$articleId'
     | '/post/$postId'
+    | '/u/$username'
     | '/admin/'
     | '/api/public/log-visit'
   fileRoutesById: FileRoutesById
@@ -239,6 +251,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   ArticleArticleIdRoute: typeof ArticleArticleIdRoute
   PostPostIdRoute: typeof PostPostIdRoute
+  UUsernameRoute: typeof UUsernameRoute
   ApiPublicLogVisitRoute: typeof ApiPublicLogVisitRoute
 }
 
@@ -299,6 +312,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/u/$username': {
+      id: '/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof UUsernameRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/post/$postId': {
       id: '/post/$postId'
@@ -398,6 +418,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   ArticleArticleIdRoute: ArticleArticleIdRoute,
   PostPostIdRoute: PostPostIdRoute,
+  UUsernameRoute: UUsernameRoute,
   ApiPublicLogVisitRoute: ApiPublicLogVisitRoute,
 }
 export const routeTree = rootRouteImport

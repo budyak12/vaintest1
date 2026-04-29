@@ -91,8 +91,26 @@ function ArticlePage() {
             )}
           </div>
           <div className="text-sm">
-            <div className="text-foreground">{author?.displayName || author?.username || "user"}</div>
-            <div className="text-xs text-muted-foreground">@{author?.username || "user"} · {fullDate(entry.createdAt)}</div>
+            <div className="text-foreground">
+              {author?.username ? (
+                <Link to="/u/$username" params={{ username: author.username }} className="hover:underline">
+                  {author.displayName || author.username}
+                </Link>
+              ) : (
+                author?.displayName || author?.username || "user"
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {author?.username ? (
+                <Link to="/u/$username" params={{ username: author.username }} className="hover:underline">
+                  @{author.username}
+                </Link>
+              ) : (
+                <>@{author?.username || "user"}</>
+              )}
+              {" · "}
+              {fullDate(entry.createdAt)}
+            </div>
           </div>
         </div>
       </header>

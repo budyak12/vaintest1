@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEntryAuthor } from "@/lib/queries";
 import { useTimeAgo } from "@/lib/format";
 import { ActionBar } from "./ActionBar";
@@ -24,12 +24,40 @@ function Avatar({ name, url }: { name: string; url?: string }) {
 function MetaLine({ entry }: { entry: Entry }) {
   const { data: author } = useEntryAuthor(entry.authorId);
   const ago = useTimeAgo(entry.createdAt);
+  const navigate = useNavigate();
   const display = author?.displayName || author?.username || "user";
   const handle = author?.username || "user";
+
+  const goProfile = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if (!author?.username) return;
+    e.preventDefault();
+    e.stopPropagation();
+    void navigate({ to: "/u/$username", params: { username: author.username } });
+  };
+
+  const linkClass = author?.username ? "cursor-pointer hover:underline" : "";
+
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-      <span className="font-medium text-foreground">{display}</span>
-      <span>@{handle}</span>
+      <span
+        role={author?.username ? "link" : undefined}
+        tabIndex={author?.username ? 0 : undefined}
+        onClick={goProfile}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") goProfile(e);
+        }}
+        className={`font-medium text-foreground ${linkClass}`}
+      >
+        {display}
+      </span>
+      <span
+        role={author?.username ? "link" : undefined}
+        tabIndex={author?.username ? 0 : undefined}
+        onClick={goProfile}
+        className={linkClass}
+      >
+        @{handle}
+      </span>
       <span>·</span>
       <span title={new Date(entry.createdAt).toLocaleString()}>{ago}</span>
       {entry.tags.length > 0 && (

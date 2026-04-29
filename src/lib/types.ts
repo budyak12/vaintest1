@@ -58,6 +58,7 @@ export interface Comment {
   entryId: string;
   authorId: string;
   authorName: string;
+  authorUsername?: string;
   body: string;
   createdAt: string;
   likes: number;
