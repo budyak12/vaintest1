@@ -431,6 +431,46 @@ export function useAuthor(): { data: Author | null; isLoading: boolean } {
   return { data: q.data ?? null, isLoading: q.isLoading };
 }
 
+/* -------------------- PUBLIC USER PROFILE (read-only) -------------------- */
+
+export function useUserProfile(username: string | undefined) {
+  return useQuery({
+    enabled: !!username,
+    queryKey: ["user-profile", username],
+    queryFn: async (): Promise<Author | null> => {
+      if (!username) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("username", username)
+        .maybeSingle();
+      if (error) throw error;
+      return data ? mapAuthor(data) : null;
+    },
+  });
+}
+
+export function useUserEntries(authorId: string | undefined) {
+  const { user } = useAuth();
+  return useQuery({
+    enabled: !!authorId,
+    queryKey: ["user-entries", authorId, user?.id ?? null],
+    queryFn: async (): Promise<Entry[]> => {
+      if (!authorId) return [];
+      const { data, error } = await supabase
+        .from("entries")
+        .select("*")
+        .eq("author_id", authorId)
+        .eq("draft", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      if (!data) return [];
+      const ctx = await fetchEntryContext(data.map((d) => d.id), user?.id ?? null);
+      return data.map((row) => mapEntry(row, ctx[row.id]));
+    },
+  });
+}
+
 /* -------------------- ADMIN COMMENTS LIST -------------------- */
 
 export function useAllCommentsForAdmin() {
