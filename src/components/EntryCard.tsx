@@ -28,8 +28,30 @@ function MetaLine({ entry }: { entry: Entry }) {
   const handle = author?.username || "user";
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-      <span className="font-medium text-foreground">{display}</span>
-      <span>@{handle}</span>
+      {author?.username ? (
+        <Link
+          to="/u/$username"
+          params={{ username: author.username }}
+          onClick={(e) => e.stopPropagation()}
+          className="font-medium text-foreground hover:underline"
+        >
+          {display}
+        </Link>
+      ) : (
+        <span className="font-medium text-foreground">{display}</span>
+      )}
+      {author?.username ? (
+        <Link
+          to="/u/$username"
+          params={{ username: author.username }}
+          onClick={(e) => e.stopPropagation()}
+          className="hover:underline"
+        >
+          @{handle}
+        </Link>
+      ) : (
+        <span>@{handle}</span>
+      )}
       <span>·</span>
       <span title={new Date(entry.createdAt).toLocaleString()}>{ago}</span>
       {entry.tags.length > 0 && (
