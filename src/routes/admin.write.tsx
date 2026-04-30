@@ -248,7 +248,7 @@ function ArticleEditor({ article, onChange }: { article: Article; onChange: (a: 
               readingMinutes: Math.max(1, parseInt(e.target.value || "1", 10) || 1),
             })
           }
-          className="w-16 rounded-md border border-border bg-subtle px-2 py-1 text-sm tabular-nums focus:border-foreground/60 focus:outline-none"
+          className="no-spinner w-16 rounded-md border border-border bg-subtle px-2 py-1 text-sm tabular-nums focus:border-foreground/60 focus:outline-none"
         />
         <span className="text-xs text-muted-foreground">min read</span>
       </div>

@@ -18,9 +18,11 @@ import {
   Crop,
   Square,
   Scan,
+  Scissors,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ImageEditorModal } from "./ImageEditorModal";
+import { VideoEditorModal } from "./VideoEditorModal";
 import { VideoPlayer, AudioPlayer } from "../MediaPlayers";
 
 export type MediaAlign = "left" | "center" | "right" | "wrap-left" | "wrap-right" | "full";
@@ -181,6 +183,7 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
   const [editingAlt, setEditingAlt] = useState(false);
   const [draftAlt, setDraftAlt] = useState(a.alt ?? "");
   const [showEditor, setShowEditor] = useState(false);
+  const [showVideoEditor, setShowVideoEditor] = useState(false);
 
   const setAlign = (align: MediaAlign) => updateAttributes({ align });
   const toggleLock = () => updateAttributes({ lockRatio: !a.lockRatio });
@@ -271,10 +274,11 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
         }
       }
 
-      // Width-driven nodes (image/video) always lock height when ratio locked
+      // Width-driven nodes (image/video) always lock height when ratio locked.
+      // Audio has intrinsic height — never set it.
       pending = {
         w: newW,
-        h: lock ? null : newH,
+        h: a.kind === "audio" ? null : lock ? null : newH,
       };
       if (!raf) raf = requestAnimationFrame(apply);
     };
@@ -349,7 +353,7 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
           <AudioPlayer src={a.src} title={a.alt ?? undefined} />
         )}
 
-        {/* Resize handles — image/video only */}
+        {/* Resize handles */}
         {editable && a.kind !== "audio" && (
           <>
             <Handle pos="tl" onStart={onResizeStart} />
@@ -359,6 +363,12 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             <Handle pos="l" onStart={onResizeStart} />
             <Handle pos="r" onStart={onResizeStart} />
             <Handle pos="b" onStart={onResizeStart} />
+          </>
+        )}
+        {editable && a.kind === "audio" && (
+          <>
+            <Handle pos="l" onStart={onResizeStart} />
+            <Handle pos="r" onStart={onResizeStart} />
           </>
         )}
       </div>
@@ -426,6 +436,11 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
               </TBtn>
             </>
           )}
+          {a.kind === "video" && (
+            <TBtn title="Trim video" onClick={() => setShowVideoEditor(true)}>
+              <Scissors className="h-3.5 w-3.5" />
+            </TBtn>
+          )}
           <TBtn title="Replace file" onClick={replaceFile}>
             <Pencil className="h-3.5 w-3.5" />
           </TBtn>
@@ -474,6 +489,17 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
           src={a.src}
           onCancel={() => setShowEditor(false)}
           onApply={onApplyEdited}
+        />
+      )}
+
+      {showVideoEditor && a.kind === "video" && (
+        <VideoEditorModal
+          src={a.src}
+          onCancel={() => setShowVideoEditor(false)}
+          onApply={(newSrc) => {
+            updateAttributes({ src: newSrc });
+            setShowVideoEditor(false);
+          }}
         />
       )}
     </NodeViewWrapper>

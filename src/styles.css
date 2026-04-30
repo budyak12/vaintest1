@@ -461,3 +461,17 @@
 .prose-editorial figure[data-resizable-media] video::-webkit-media-controls-panel {
   background-color: rgba(0, 0, 0, 0.5);
 }
+
+/* ============================================================
+   Hide native number-input spinner arrows.
+   Use class="no-spinner" on <input type="number"> to opt in.
+   ============================================================ */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinner {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
