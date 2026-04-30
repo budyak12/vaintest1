@@ -350,7 +350,13 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
         ) : a.kind === "video" ? (
           <VideoPlayer src={a.src} className="h-full w-full" />
         ) : (
-          <AudioPlayer src={a.src} title={a.alt ?? undefined} />
+          <AudioPlayer
+            src={a.src}
+            title={a.alt ?? undefined}
+            className="h-full"
+            editableTitle={editable}
+            onTitleChange={(next) => updateAttributes({ alt: next })}
+          />
         )}
 
         {/* Resize handles */}
