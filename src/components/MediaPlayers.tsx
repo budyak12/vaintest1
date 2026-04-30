@@ -516,7 +516,7 @@ export function AudioPlayer({
   return (
     <div
       className={cn(
-        "flex w-full items-center gap-3 rounded-md border border-border bg-subtle px-3 py-2.5",
+        "flex h-full w-full items-center gap-3 rounded-md border border-border bg-subtle px-3 py-2.5",
         className,
       )}
     >
