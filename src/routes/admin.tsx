@@ -51,9 +51,13 @@ function AdminLayout() {
                   key={it.to}
                   to={it.to}
                   activeOptions={{ exact: !!it.exact }}
-                  className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-muted-foreground transition-colors hover:bg-subtle hover:text-foreground"
-                  activeProps={{ className: "text-foreground bg-subtle" }}
+                  className="group relative inline-flex items-center gap-1.5 overflow-hidden rounded-md px-2.5 py-1.5 text-muted-foreground transition-all duration-[600ms] ease-out hover:-translate-y-[1px] hover:text-foreground"
+                  activeProps={{ className: "text-foreground" }}
                 >
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100 group-[.text-foreground]:scale-100 group-[.text-foreground]:opacity-100"
+                  />
                   <Icon className="h-3.5 w-3.5" />
                   {it.label}
                 </Link>
@@ -63,15 +67,23 @@ function AdminLayout() {
           <div className="ml-auto flex items-center gap-2">
             <Link
               to="/"
-              className="hidden text-xs text-muted-foreground hover:text-foreground sm:inline"
+              className="group relative hidden overflow-hidden rounded-md px-2 py-1 text-xs text-muted-foreground transition-all duration-[600ms] ease-out hover:-translate-y-[1px] hover:text-foreground sm:inline-flex"
             >
+              <span
+                aria-hidden
+                className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100"
+              />
               View site →
             </Link>
             <button
               onClick={() => void signOut()}
               aria-label="Sign out"
-              className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-border px-2 text-xs text-muted-foreground hover:text-foreground sm:px-2.5 sm:py-1.5"
+              className="group relative inline-flex h-8 items-center justify-center gap-1.5 overflow-hidden rounded-md border border-border px-2 text-xs text-muted-foreground transition-all duration-[600ms] ease-out hover:-translate-y-[1px] hover:text-foreground sm:px-2.5 sm:py-1.5"
             >
+              <span
+                aria-hidden
+                className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100"
+              />
               <LogOut className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Sign out</span>
             </button>
@@ -86,9 +98,13 @@ function AdminLayout() {
                 key={it.to}
                 to={it.to}
                 activeOptions={{ exact: !!it.exact }}
-                className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-muted-foreground hover:bg-subtle hover:text-foreground"
-                activeProps={{ className: "text-foreground bg-subtle" }}
+                className="group relative inline-flex shrink-0 items-center gap-1 overflow-hidden rounded-md px-2 py-1 text-muted-foreground transition-all duration-[600ms] ease-out hover:text-foreground"
+                activeProps={{ className: "text-foreground" }}
               >
+                <span
+                  aria-hidden
+                  className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100 group-[.text-foreground]:scale-100 group-[.text-foreground]:opacity-100"
+                />
                 <Icon className="h-3.5 w-3.5" />
                 {it.label}
               </Link>
