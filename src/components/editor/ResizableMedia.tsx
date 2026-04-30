@@ -491,6 +491,17 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
           onApply={onApplyEdited}
         />
       )}
+
+      {showVideoEditor && a.kind === "video" && (
+        <VideoEditorModal
+          src={a.src}
+          onCancel={() => setShowVideoEditor(false)}
+          onApply={(newSrc) => {
+            updateAttributes({ src: newSrc });
+            setShowVideoEditor(false);
+          }}
+        />
+      )}
     </NodeViewWrapper>
   );
 }
