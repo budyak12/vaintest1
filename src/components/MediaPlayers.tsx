@@ -543,9 +543,27 @@ export function AudioPlayer({
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex min-w-0 items-center gap-2">
           <Music className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <div className="min-w-0 truncate text-sm text-foreground">
-            {title || "Audio"}
-          </div>
+          {editableTitle ? (
+            <input
+              type="text"
+              defaultValue={title || ""}
+              placeholder="Audio title"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              onBlur={(e) => onTitleChange?.(e.currentTarget.value.trim())}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLInputElement).blur();
+                }
+              }}
+              className="min-w-0 flex-1 truncate rounded-sm bg-transparent px-1 text-sm text-foreground outline-none focus:bg-background focus:ring-1 focus:ring-ring"
+            />
+          ) : (
+            <div className="min-w-0 truncate text-sm text-foreground">
+              {title || "Audio"}
+            </div>
+          )}
           <span className="ml-auto select-none font-mono text-[11px] tabular-nums text-muted-foreground">
             {fmtTime(time)} / {fmtTime(duration)}
           </span>
