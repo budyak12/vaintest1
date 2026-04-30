@@ -274,10 +274,11 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
         }
       }
 
-      // Width-driven nodes (image/video) always lock height when ratio locked
+      // Width-driven nodes (image/video) always lock height when ratio locked.
+      // Audio has intrinsic height — never set it.
       pending = {
         w: newW,
-        h: lock ? null : newH,
+        h: a.kind === "audio" ? null : lock ? null : newH,
       };
       if (!raf) raf = requestAnimationFrame(apply);
     };
