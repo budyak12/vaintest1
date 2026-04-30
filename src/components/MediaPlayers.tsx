@@ -447,10 +447,14 @@ export function AudioPlayer({
   src,
   title,
   className,
+  editableTitle = false,
+  onTitleChange,
 }: {
   src: string;
   title?: string;
   className?: string;
+  editableTitle?: boolean;
+  onTitleChange?: (next: string) => void;
 }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
