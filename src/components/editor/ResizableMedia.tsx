@@ -274,11 +274,11 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
         }
       }
 
-      // Width-driven nodes (image/video) always lock height when ratio locked.
-      // Audio has intrinsic height — never set it.
+      // Width-driven nodes (image/video) lock height when ratio locked.
+      // Audio: allow free height when user drags vertical handles, otherwise leave intrinsic.
       pending = {
         w: newW,
-        h: a.kind === "audio" ? null : lock ? null : newH,
+        h: lock ? null : newH,
       };
       if (!raf) raf = requestAnimationFrame(apply);
     };
@@ -350,11 +350,17 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
         ) : a.kind === "video" ? (
           <VideoPlayer src={a.src} className="h-full w-full" />
         ) : (
-          <AudioPlayer src={a.src} title={a.alt ?? undefined} />
+          <AudioPlayer
+            src={a.src}
+            title={a.alt ?? undefined}
+            className="h-full"
+            editableTitle={editable}
+            onTitleChange={(next) => updateAttributes({ alt: next })}
+          />
         )}
 
         {/* Resize handles */}
-        {editable && a.kind !== "audio" && (
+        {editable && (
           <>
             <Handle pos="tl" onStart={onResizeStart} />
             <Handle pos="tr" onStart={onResizeStart} />
@@ -363,12 +369,6 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             <Handle pos="l" onStart={onResizeStart} />
             <Handle pos="r" onStart={onResizeStart} />
             <Handle pos="b" onStart={onResizeStart} />
-          </>
-        )}
-        {editable && a.kind === "audio" && (
-          <>
-            <Handle pos="l" onStart={onResizeStart} />
-            <Handle pos="r" onStart={onResizeStart} />
           </>
         )}
       </div>
