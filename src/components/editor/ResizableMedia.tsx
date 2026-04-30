@@ -18,6 +18,7 @@ import {
   Crop,
   Square,
   Scan,
+  Scissors,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ImageEditorModal } from "./ImageEditorModal";
