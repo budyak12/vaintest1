@@ -183,6 +183,7 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
   const [editingAlt, setEditingAlt] = useState(false);
   const [draftAlt, setDraftAlt] = useState(a.alt ?? "");
   const [showEditor, setShowEditor] = useState(false);
+  const [showVideoEditor, setShowVideoEditor] = useState(false);
 
   const setAlign = (align: MediaAlign) => updateAttributes({ align });
   const toggleLock = () => updateAttributes({ lockRatio: !a.lockRatio });
