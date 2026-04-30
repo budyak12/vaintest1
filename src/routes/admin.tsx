@@ -56,7 +56,7 @@ function AdminLayout() {
                 >
                   <span
                     aria-hidden
-                    className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100 group-[.text-foreground]:scale-100 group-[.text-foreground]:opacity-100"
+                    className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100"
                   />
                   <Icon className="h-3.5 w-3.5" />
                   {it.label}
@@ -103,7 +103,7 @@ function AdminLayout() {
               >
                 <span
                   aria-hidden
-                  className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100 group-[.text-foreground]:scale-100 group-[.text-foreground]:opacity-100"
+                  className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100"
                 />
                 <Icon className="h-3.5 w-3.5" />
                 {it.label}
