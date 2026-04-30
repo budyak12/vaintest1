@@ -354,7 +354,7 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
         )}
 
         {/* Resize handles */}
-        {editable && a.kind !== "audio" && (
+        {editable && (
           <>
             <Handle pos="tl" onStart={onResizeStart} />
             <Handle pos="tr" onStart={onResizeStart} />
@@ -363,12 +363,6 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             <Handle pos="l" onStart={onResizeStart} />
             <Handle pos="r" onStart={onResizeStart} />
             <Handle pos="b" onStart={onResizeStart} />
-          </>
-        )}
-        {editable && a.kind === "audio" && (
-          <>
-            <Handle pos="l" onStart={onResizeStart} />
-            <Handle pos="r" onStart={onResizeStart} />
           </>
         )}
       </div>
