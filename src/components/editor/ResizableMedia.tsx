@@ -436,6 +436,11 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
               </TBtn>
             </>
           )}
+          {a.kind === "video" && (
+            <TBtn title="Trim video" onClick={() => setShowVideoEditor(true)}>
+              <Scissors className="h-3.5 w-3.5" />
+            </TBtn>
+          )}
           <TBtn title="Replace file" onClick={replaceFile}>
             <Pencil className="h-3.5 w-3.5" />
           </TBtn>
