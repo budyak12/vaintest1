@@ -1,13 +1,21 @@
 import { Fragment, type ReactNode } from "react";
 
 // Available emoji shortcodes. The image lives at /emoji/<name>.png
+// Order roughly mirrors the reference picker layout: round-style faces first
+// (expressive, colorful), then the white "bun" character set.
 export const EMOJI_NAMES = [
-  "angel","angry","astonish","awkward","blink","complacent","cool","cry","cute",
-  "disdain","drool","embarrassed","evil","excited","facewithrollingeyes","flushed",
-  "funnyface","greedy","happy","hehe","joyful","laugh","laughwithtears","loveface",
-  "lovely","nap","pride","proud","rage","scream","shock","shout","slap","smile",
-  "smileface","speechless","stun","sulk","surprised","tears","thinking","weep",
-  "wicked","wow","wronged","yummy",
+  // Row 1 — round, basic emotions
+  "smile", "happy", "angry", "cry", "embarrassed", "surprised", "wronged", "shout",
+  // Row 2 — round, varied moods
+  "flushed", "lovely", "complacent", "loveface", "scream", "weep", "speechless", "funnyface",
+  // Row 3 — round, reactions
+  "laughwithtears", "wicked", "facewithrollingeyes", "sulk", "thinking", "pride", "greedy", "astonish",
+  // Row 4 — bun, happy/playful
+  "hehe", "joyful", "slap", "tears", "drool", "cute", "blink", "disdain",
+  // Row 5 — bun, intense
+  "rage", "shock", "cool", "excited", "evil", "smileface", "wow", "angel",
+  // Row 6 — bun, leftover
+  "laugh", "nap", "yummy", "proud", "awkward", "stun",
 ] as const;
 
 export type EmojiName = (typeof EMOJI_NAMES)[number];

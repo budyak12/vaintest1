@@ -19,6 +19,8 @@ export function MediaItem({ media }: { media: MediaAttachment }) {
         <img
           src={media.url}
           alt={media.alt ?? ""}
+          loading="lazy"
+          decoding="async"
           className="h-auto w-full object-cover"
         />
       </div>
