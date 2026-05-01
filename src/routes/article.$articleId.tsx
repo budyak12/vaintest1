@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ActionBar } from "@/components/ActionBar";
 import { MediaItem } from "@/components/MediaPreview";
+import { ArticleContent } from "@/components/ArticleContent";
 import { Comments } from "@/components/Comments";
 import { useEntry, useIncrementView, useEntryAuthor } from "@/lib/queries";
 import { fullDate } from "@/lib/format";
