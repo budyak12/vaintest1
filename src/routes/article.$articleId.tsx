@@ -115,7 +115,7 @@ function ArticlePage() {
         </div>
       </header>
 
-      <div className="prose-editorial" dangerouslySetInnerHTML={{ __html: entry.contentHtml }} />
+      <ArticleContent html={entry.contentHtml} className="prose-editorial" />
 
       {entry.type === "article" && entry.media && entry.media.length > 0 && (
         <div className="mt-8 flex flex-col gap-4">

@@ -1,6 +1,5 @@
-import { Fragment, useMemo, type ReactNode } from "react";
-import parse, { domToReact, type DOMNode, type HTMLReactParserOptions } from "html-react-parser";
-import { Element } from "domhandler";
+import { Fragment, useMemo, type ReactElement, type ReactNode, createElement } from "react";
+import parse, { type HTMLReactParserOptions, Element } from "html-react-parser";
 import { AudioPlayer, VideoPlayer } from "./MediaPlayers";
 
 /**
@@ -12,18 +11,17 @@ export function ArticleContent({ html, className }: { html: string; className?: 
   const content: ReactNode = useMemo(() => {
     if (!html) return null;
     const options: HTMLReactParserOptions = {
-      replace: (node) => {
-        if (!(node instanceof Element)) return undefined;
+      replace: (domNode) => {
+        if (!(domNode instanceof Element)) return undefined;
+        const node = domNode;
 
-        // Find a media element nested inside common wrappers (figure/div),
-        // so resizable/audio/video markup keeps its outer alignment frame.
-        const mediaTag = (() => {
+        // Find a media element either at this node or directly nested below.
+        const mediaTag: Element | null = (() => {
           if (node.name === "audio" || node.name === "video") return node;
-          if (node.children) {
-            for (const child of node.children) {
-              if (child instanceof Element && (child.name === "audio" || child.name === "video")) {
-                return child;
-              }
+          const children = node.children ?? [];
+          for (const child of children) {
+            if (child instanceof Element && (child.name === "audio" || child.name === "video")) {
+              return child;
             }
           }
           return null;
@@ -31,7 +29,6 @@ export function ArticleContent({ html, className }: { html: string; className?: 
 
         if (!mediaTag) return undefined;
 
-        // Pull src either from attribute or from the first <source> child.
         let src = mediaTag.attribs?.src;
         if (!src && mediaTag.children) {
           for (const child of mediaTag.children) {
@@ -43,30 +40,31 @@ export function ArticleContent({ html, className }: { html: string; className?: 
         }
         if (!src) return undefined;
 
-        const title = mediaTag.attribs?.title || mediaTag.attribs?.["data-title"] || mediaTag.attribs?.alt;
-        const player =
+        const title =
+          mediaTag.attribs?.title ||
+          mediaTag.attribs?.["data-title"] ||
+          mediaTag.attribs?.alt;
+
+        const player: ReactElement =
           mediaTag.name === "audio" ? (
             <AudioPlayer src={src} title={title} className="h-full w-full" />
           ) : (
             <VideoPlayer src={src} className="h-full w-full" />
           );
 
-        // If the parent is a wrapper figure/div from the editor, keep it for
-        // alignment / sizing; otherwise just render the player.
+        // If the parent is a wrapper figure/div (alignment frame from the
+        // editor), re-emit the wrapper around our custom player. Otherwise
+        // just render the player directly.
         if (node !== mediaTag) {
-          // Re-emit the wrapper but replace inner children with our player.
-          const Tag = node.name as keyof JSX.IntrinsicElements;
           const props: Record<string, unknown> = {};
           for (const [k, v] of Object.entries(node.attribs ?? {})) {
-            // class -> className
             if (k === "class") props.className = v;
             else if (k === "style") {
-              // crude inline-style → object conversion
               const style: Record<string, string> = {};
               for (const decl of String(v).split(";")) {
                 const [prop, val] = decl.split(":").map((x) => x?.trim());
                 if (prop && val) {
-                  const camel = prop.replace(/-([a-z])/g, (_m, c) => c.toUpperCase());
+                  const camel = prop.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase());
                   style[camel] = val;
                 }
               }
@@ -75,18 +73,13 @@ export function ArticleContent({ html, className }: { html: string; className?: 
               props[k] = v;
             }
           }
-          return <Tag {...props}>{player}</Tag>;
+          return createElement(node.name, props, player);
         }
         return player;
       },
     };
 
-    const parsed = parse(html, options);
-    return <Fragment>{parsed as ReactNode}</Fragment>;
-
-    // expose helper for tooling
-    void domToReact;
-    void ({} as DOMNode);
+    return <Fragment>{parse(html, options) as ReactNode}</Fragment>;
   }, [html]);
 
   return <div className={className}>{content}</div>;
