@@ -110,6 +110,16 @@ function AdminLayout() {
               </Link>
             );
           })}
+          <Link
+            to="/"
+            className="group relative ml-1 inline-flex shrink-0 items-center gap-1 overflow-hidden rounded-md border border-border px-2 py-1 text-muted-foreground transition-all duration-[600ms] ease-out hover:text-foreground"
+          >
+            <span
+              aria-hidden
+              className="absolute inset-0 -z-10 scale-90 rounded-md bg-subtle opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-100 group-hover:opacity-100"
+            />
+            View site →
+          </Link>
         </nav>
       </header>
       <main className="mx-auto w-full max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
