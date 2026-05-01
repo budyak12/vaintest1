@@ -112,19 +112,21 @@ export function ArticleCard({ article }: { article: Article }) {
           <h2 className="mt-2 font-serif text-xl font-semibold leading-tight tracking-tight text-foreground transition-opacity group-hover:opacity-80 sm:text-2xl">
             {article.title}
           </h2>
+          {article.subtitle && (
+            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+              {article.subtitle}
+            </p>
+          )}
           {article.coverUrl && (
             <div className="mt-3 overflow-hidden rounded-md border border-border bg-subtle">
               <img
                 src={article.coverUrl}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 className="h-auto w-full object-contain"
               />
             </div>
-          )}
-          {article.subtitle && (
-            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-              {article.subtitle}
-            </p>
           )}
           <div className="mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
             Article · {article.readingMinutes} min read
