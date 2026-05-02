@@ -7,7 +7,7 @@ import { MediaPreview } from "@/components/MediaPreview";
 import { Comments } from "@/components/Comments";
 import { useEntry, useIncrementView, useEntryAuthor } from "@/lib/queries";
 import { fullDate, useTimeAgo } from "@/lib/format";
-import { renderTextWithEmoji } from "@/lib/emoji";
+import { renderTextWithEmojiAndStickers } from "@/lib/emoji";
 import { isUuid } from "@/lib/slug";
 
 export const Route = createFileRoute("/post/$postId")({
@@ -75,7 +75,7 @@ function PostPage() {
               createdAt={entry.createdAt}
             />
             <p className="mt-3 whitespace-pre-wrap text-base leading-relaxed text-foreground sm:text-lg">
-              {renderTextWithEmoji(entry.body)}
+              {renderTextWithEmojiAndStickers(entry.body)}
             </p>
             {entry.media.length > 0 && (
               <div className="mt-4">
