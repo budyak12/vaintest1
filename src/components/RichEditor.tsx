@@ -28,7 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ResizableMedia, type ResizableMediaKind } from "./editor/ResizableMedia";
 import { uploadToStorage, detectMediaType } from "./editor/upload";
-import { EmojiPicker } from "./EmojiPicker";
+import { StickerPickerPopover } from "./StickerPickerPopover";
 import { emojiImgHtml } from "@/lib/emoji";
 import { toast } from "sonner";
 
@@ -217,9 +217,18 @@ function Toolbar({
       <MediaInsertBtn kind="video" icon={<Film className="h-3.5 w-3.5" />} onPickFiles={onPickFiles} onUrl={() => insertByUrl("video")} />
       <MediaInsertBtn kind="audio" icon={<Music className="h-3.5 w-3.5" />} onPickFiles={onPickFiles} onUrl={() => insertByUrl("audio")} />
       <span className="mx-1 h-4 w-px bg-border" />
-      <EmojiPicker
-        onPick={(name) =>
+      <StickerPickerPopover
+        onPickEmoji={(name) =>
           editor.chain().focus().insertContent(emojiImgHtml(name)).run()
+        }
+        onPickSticker={(s) =>
+          editor
+            .chain()
+            .focus()
+            .insertContent(
+              `<video src="${s.url}" data-sticker="true" class="vain-sticker-inline" autoplay loop muted playsinline preload="auto"></video>`,
+            )
+            .run()
         }
       />
     </div>
