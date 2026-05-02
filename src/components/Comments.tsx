@@ -298,6 +298,13 @@ function CommentRow({ comment, canDelete }: { comment: Comment; canDelete: boole
             {renderTextWithEmoji(parsed.text)}
           </p>
         )}
+        {parsed.stickers.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {parsed.stickers.map((url, idx) => (
+              <Sticker key={`s_${idx}`} src={url} size={128} />
+            ))}
+          </div>
+        )}
         {parsed.media.length > 0 && (
           <div className="mt-2 flex flex-col gap-2">
             {parsed.media.map((m) => (
