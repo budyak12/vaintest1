@@ -405,9 +405,32 @@
   -webkit-user-drag: none;
 }
 
-/* ============================================================
-   Custom media players (volume range, etc.)
-   ============================================================ */
+/* Telegram-style video stickers — square preview, no controls. */
+.vain-sticker {
+  display: inline-block;
+  vertical-align: middle;
+  background: transparent;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.vain-sticker > video,
+video.vain-sticker-inline {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: transparent;
+  pointer-events: none;
+}
+video.vain-sticker-inline {
+  width: 128px;
+  height: 128px;
+  margin: 0.25rem 0;
+}
+/* Hide native controls if a sticker video sneaks in via parsed HTML. */
+video.vain-sticker-inline::-webkit-media-controls {
+  display: none !important;
+}
 
 .vain-range {
   background: transparent;

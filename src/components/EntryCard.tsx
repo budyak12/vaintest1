@@ -3,7 +3,7 @@ import { useEntryAuthor } from "@/lib/queries";
 import { useTimeAgo } from "@/lib/format";
 import { ActionBar } from "./ActionBar";
 import { MediaPreview } from "./MediaPreview";
-import { renderTextWithEmoji } from "@/lib/emoji";
+import { renderTextWithEmojiAndStickers } from "@/lib/emoji";
 import type { ShortPost, Article, Entry } from "@/lib/types";
 
 function Avatar({ name, url }: { name: string; url?: string }) {
@@ -83,7 +83,7 @@ export function PostCard({ post }: { post: ShortPost }) {
         <div className="min-w-0 flex-1">
           <MetaLine entry={post} />
           <p className="mt-1.5 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
-            {renderTextWithEmoji(post.body)}
+            {renderTextWithEmojiAndStickers(post.body)}
           </p>
           {post.media.length > 0 && (
             <div className="mt-3">

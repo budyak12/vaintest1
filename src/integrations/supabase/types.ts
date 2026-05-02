@@ -244,6 +244,42 @@ export type Database = {
         }
         Relationships: []
       }
+      stickers: {
+        Row: {
+          alt: string | null
+          created_at: string
+          duration_ms: number | null
+          height: number | null
+          id: string
+          size_bytes: number | null
+          uploaded_by: string | null
+          url: string
+          width: number | null
+        }
+        Insert: {
+          alt?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          height?: number | null
+          id?: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+          url: string
+          width?: number | null
+        }
+        Update: {
+          alt?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          height?: number | null
+          id?: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+          url?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

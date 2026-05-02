@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LogOut, LayoutDashboard, FileText, MessageSquare, Image as ImageIcon, Tag, PenLine, Activity } from "lucide-react";
+import { LogOut, LayoutDashboard, FileText, MessageSquare, Image as ImageIcon, Tag, PenLine, Activity, Sticker as StickerIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +32,7 @@ function AdminLayout() {
     { to: "/admin/write" as const, label: "Write", icon: PenLine },
     { to: "/admin/comments" as const, label: "Comments", icon: MessageSquare },
     { to: "/admin/media" as const, label: "Media", icon: ImageIcon },
+    { to: "/admin/stickers" as const, label: "Stickers", icon: StickerIcon },
     { to: "/admin/tags" as const, label: "Tags", icon: Tag },
     { to: "/admin/logs" as const, label: "Logs", icon: Activity },
   ];

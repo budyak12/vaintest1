@@ -12,9 +12,10 @@ import { useTimeAgo } from "@/lib/format";
 import { compactNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Comment, MediaAttachment, MediaType } from "@/lib/types";
-import { EmojiPicker } from "./EmojiPicker";
+import { StickerPickerPopover } from "./StickerPickerPopover";
 import { emojiShortcode } from "@/lib/emoji";
 import { renderTextWithEmoji } from "@/lib/emoji";
+import { Sticker } from "./Sticker";
 import { MediaItem } from "./MediaPreview";
 import { uploadToStorage, detectMediaType } from "@/components/editor/upload";
 import { toast } from "sonner";
@@ -22,9 +23,11 @@ import { toast } from "sonner";
 /* ---------- media token (de)serialization ---------- */
 // Tokens are stored on a dedicated line inside the comment body:
 //   [media:image:https://…|alt text]
+//   [sticker:https://…/file.webm]
 // so they roundtrip through the plain-text `comments.body` column.
 
 const MEDIA_TOKEN_RE = /\[media:(image|video|audio):([^\]|]+)(?:\|([^\]]*))?\]/g;
+const STICKER_TOKEN_RE = /\[sticker:([^\]]+)\]/g;
 // Fallback: bare URLs pointing at uploaded media. Used to render media even
 // if the token wrapper was stripped or the client that wrote the comment was
 // older than the tokenization logic.
@@ -45,13 +48,20 @@ function classifyUrl(url: string): MediaType | null {
 interface ParsedComment {
   text: string;
   media: MediaAttachment[];
+  stickers: string[];
 }
 
 function parseCommentBody(body: string): ParsedComment {
   const media: MediaAttachment[] = [];
+  const stickers: string[] = [];
   let i = 0;
+  // 0. Extract sticker tokens.
+  let text = body.replace(STICKER_TOKEN_RE, (_m, url: string) => {
+    stickers.push(url);
+    return "";
+  });
   // 1. Extract explicit [media:...] tokens first.
-  let text = body.replace(MEDIA_TOKEN_RE, (_m, type: MediaType, url: string, alt?: string) => {
+  text = text.replace(MEDIA_TOKEN_RE, (_m, type: MediaType, url: string, alt?: string) => {
     media.push({ id: `c_${i++}`, type, url, alt: alt || undefined });
     return "";
   });
@@ -62,12 +72,16 @@ function parseCommentBody(body: string): ParsedComment {
     media.push({ id: `c_${i++}`, type, url });
     return "";
   });
-  return { text: text.replace(/\n{3,}/g, "\n\n").trim(), media };
+  return { text: text.replace(/\n{3,}/g, "\n\n").trim(), media, stickers };
 }
 
 function mediaToken(m: MediaAttachment): string {
   const alt = (m.alt || "").replace(/[|\]]/g, "");
   return `[media:${m.type}:${m.url}${alt ? `|${alt}` : ""}]`;
+}
+
+function stickerToken(url: string): string {
+  return `[sticker:${url}]`;
 }
 
 /* ---------- main component ---------- */
@@ -176,7 +190,14 @@ export function Comments({ entryId }: { entryId: string }) {
               </div>
             )}
             <div className="flex items-center gap-1 border-t border-border px-1.5 py-1">
-              <EmojiPicker onPick={(name) => insertAtCursor(emojiShortcode(name))} />
+              <StickerPickerPopover
+                onPickEmoji={(name) => insertAtCursor(emojiShortcode(name))}
+                onPickSticker={async (s) => {
+                  // Send the sticker as its own message immediately so it doesn't
+                  // collide with text the user might still be typing.
+                  await addComment.mutateAsync({ entryId, body: stickerToken(s.url) });
+                }}
+              />
               <button
                 type="button"
                 title="Attach media"
@@ -276,6 +297,13 @@ function CommentRow({ comment, canDelete }: { comment: Comment; canDelete: boole
           <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
             {renderTextWithEmoji(parsed.text)}
           </p>
+        )}
+        {parsed.stickers.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {parsed.stickers.map((url, idx) => (
+              <Sticker key={`s_${idx}`} src={url} size={128} />
+            ))}
+          </div>
         )}
         {parsed.media.length > 0 && (
           <div className="mt-2 flex flex-col gap-2">
