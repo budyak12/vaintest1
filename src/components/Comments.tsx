@@ -190,7 +190,14 @@ export function Comments({ entryId }: { entryId: string }) {
               </div>
             )}
             <div className="flex items-center gap-1 border-t border-border px-1.5 py-1">
-              <EmojiPicker onPick={(name) => insertAtCursor(emojiShortcode(name))} />
+              <StickerPickerPopover
+                onPickEmoji={(name) => insertAtCursor(emojiShortcode(name))}
+                onPickSticker={async (s) => {
+                  // Send the sticker as its own message immediately so it doesn't
+                  // collide with text the user might still be typing.
+                  await addComment.mutateAsync({ entryId, body: stickerToken(s.url) });
+                }}
+              />
               <button
                 type="button"
                 title="Attach media"
