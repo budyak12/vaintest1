@@ -4,8 +4,8 @@ import { Save, Send, FileText, Type } from "lucide-react";
 import { RichEditor } from "@/components/RichEditor";
 import { MediaPicker } from "@/components/MediaPicker";
 import { TagInput } from "@/components/TagInput";
-import { EmojiPicker } from "@/components/EmojiPicker";
-import { emojiShortcode } from "@/lib/emoji";
+import { StickerPickerPopover } from "@/components/StickerPickerPopover";
+import { emojiShortcode, stickerToken } from "@/lib/emoji";
 import { useEntry, useUpsertEntry } from "@/lib/queries";
 import type { Entry, Article, ShortPost } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -173,8 +173,11 @@ function PostEditor({ post, onChange }: { post: ShortPost; onChange: (p: ShortPo
         className="w-full resize-none border-0 bg-transparent text-xl leading-relaxed focus:outline-none"
       />
       <div className="flex items-center gap-1 text-muted-foreground">
-        <EmojiPicker onPick={(name) => insertAtCursor(emojiShortcode(name))} />
-        <span className="text-[11px] uppercase tracking-wider">Emoji</span>
+        <StickerPickerPopover
+          onPickEmoji={(name) => insertAtCursor(emojiShortcode(name))}
+          onPickSticker={(s) => insertAtCursor(stickerToken(s.url))}
+        />
+        <span className="text-[11px] uppercase tracking-wider">Emoji & Stickers</span>
       </div>
       <div className="hairline-t pt-4">
         <MediaPicker media={post.media} onChange={(media) => onChange({ ...post, media })} />
