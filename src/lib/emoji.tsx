@@ -74,3 +74,46 @@ export function renderTextWithEmoji(text: string): ReactNode {
   if (last < text.length) out.push(text.slice(last));
   return <Fragment>{out}</Fragment>;
 }
+
+const STICKER_RE = /\[sticker:([^\]]+)\]/g;
+
+/**
+ * Render plain text containing both `:emoji:` shortcodes and `[sticker:URL]`
+ * tokens. Sticker tokens become inline autoplay/looped/muted videos.
+ */
+export function renderTextWithEmojiAndStickers(text: string): ReactNode {
+  if (!text) return text;
+  const out: ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  STICKER_RE.lastIndex = 0;
+  while ((m = STICKER_RE.exec(text)) !== null) {
+    if (m.index > last) out.push(renderTextWithEmoji(text.slice(last, m.index)));
+    const url = m[1];
+    out.push(
+      <span
+        key={`sk_${m.index}`}
+        className="vain-sticker my-1 inline-block align-middle"
+        style={{ width: 128, height: 128 }}
+      >
+        <video
+          src={url}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="block h-full w-full object-contain"
+        />
+      </span>,
+    );
+    last = m.index + m[0].length;
+  }
+  if (last === 0) return renderTextWithEmoji(text);
+  if (last < text.length) out.push(renderTextWithEmoji(text.slice(last)));
+  return <Fragment>{out}</Fragment>;
+}
+
+export function stickerToken(url: string): string {
+  return `[sticker:${url}]`;
+}
