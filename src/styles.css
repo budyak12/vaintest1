@@ -273,6 +273,11 @@
 .prose-editorial figure[data-resizable-media][data-fit="cover"] video {
   object-fit: cover;
 }
+/* Free stretch mode: media fills the resized box, ignoring its natural aspect ratio. */
+.prose-editorial figure[data-resizable-media][data-lock-ratio="false"] img,
+.prose-editorial figure[data-resizable-media][data-lock-ratio="false"] video {
+  object-fit: fill;
+}
 .prose-editorial figure[data-resizable-media][data-align="left"] {
   margin-left: 0;
   margin-right: auto;
