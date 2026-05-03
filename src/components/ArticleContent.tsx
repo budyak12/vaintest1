@@ -1,7 +1,14 @@
 import { Fragment, useMemo, type ReactElement, type ReactNode, createElement } from "react";
-import parse, { type HTMLReactParserOptions, Element } from "html-react-parser";
+import parse, { type HTMLReactParserOptions } from "html-react-parser";
 import { AudioPlayer, VideoPlayer } from "./MediaPlayers";
 import { Sticker } from "./Sticker";
+
+type DomElement = {
+  type: string;
+  name: string;
+  attribs?: Record<string, string>;
+  children?: DomElement[];
+};
 
 /**
  * Renders article body HTML, swapping any <audio>/<video> tags for the
@@ -9,22 +16,27 @@ import { Sticker } from "./Sticker";
  * same UI as freshly-composed ones. Recognises sticker videos via the
  * `data-sticker="true"` attribute and renders them as looping autoplay
  * sticker previews instead of full video players.
+ *
+ * NOTE: We avoid `instanceof Element` from html-react-parser because
+ * duplicate transitive `domhandler` versions can break the prototype chain
+ * — we use a structural `type === "tag"` check instead.
  */
 export function ArticleContent({ html, className }: { html: string; className?: string }) {
   const content: ReactNode = useMemo(() => {
     if (!html) return null;
     const options: HTMLReactParserOptions = {
       replace: (domNode) => {
-        if (!(domNode instanceof Element)) return undefined;
-        const node = domNode;
+        const el = domNode as unknown as DomElement;
+        if (!el || el.type !== "tag") return undefined;
+        const node = el;
 
         // Find a media element either at this node or anywhere directly nested
         // below (figures from the editor wrap the actual <audio>/<video>).
-        const findMedia = (n: Element): Element | null => {
+        const findMedia = (n: DomElement): DomElement | null => {
           if (n.name === "audio" || n.name === "video") return n;
           for (const child of n.children ?? []) {
-            if (child instanceof Element) {
-              const found = findMedia(child);
+            if (child && (child as DomElement).type === "tag") {
+              const found = findMedia(child as DomElement);
               if (found) return found;
             }
           }
@@ -38,8 +50,9 @@ export function ArticleContent({ html, className }: { html: string; className?: 
         let src = mediaTag.attribs?.src;
         if (!src && mediaTag.children) {
           for (const child of mediaTag.children) {
-            if (child instanceof Element && child.name === "source" && child.attribs?.src) {
-              src = child.attribs.src;
+            const c = child as DomElement;
+            if (c && c.type === "tag" && c.name === "source" && c.attribs?.src) {
+              src = c.attribs.src;
               break;
             }
           }
