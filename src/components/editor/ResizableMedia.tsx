@@ -417,13 +417,17 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             <span className="px-1 text-[10px] font-medium">100%</span>
           </TBtn>
           <TBtn
-            title={a.lockRatio ? "Unlock aspect ratio (Shift while dragging)" : "Lock aspect ratio"}
+            title={
+              a.lockRatio
+                ? "Lock is ON — resize keeps original proportions. Click to enable free stretch (or hold Shift while dragging)."
+                : "Free stretch is ON — drag any handle to resize without keeping proportions. Click to lock proportions back."
+            }
             onClick={toggleLock}
             active={a.lockRatio}
           >
             {a.lockRatio ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
           </TBtn>
-          {a.kind === "image" && (
+          {a.kind === "image" && a.lockRatio && (
             <TBtn
               title={a.fit === "cover" ? "Fit: cover (crop to fill)" : "Fit: contain (no crop)"}
               onClick={toggleFit}
