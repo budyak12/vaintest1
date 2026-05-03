@@ -352,7 +352,7 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             title={a.title ?? undefined}
             draggable={false}
             className="block h-full w-full select-none rounded-md"
-            style={{ objectFit: a.fit }}
+            style={{ objectFit: a.lockRatio === false ? "fill" : a.fit }}
           />
         ) : a.kind === "video" ? (
           <VideoPlayer src={a.src} className="h-full w-full" />
