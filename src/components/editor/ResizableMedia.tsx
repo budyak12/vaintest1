@@ -125,7 +125,14 @@ export const ResizableMedia = Node.create({
       return [
         "figure",
         wrapperAttrs,
-        ["video", { src: a.src, controls: "true", style: "width:100%;height:100%" }],
+        [
+          "video",
+          {
+            src: a.src,
+            controls: "true",
+            style: `width:100%;height:100%;object-fit:${a.lockRatio === false ? "fill" : "contain"}`,
+          },
+        ],
       ];
     }
     if (a.kind === "audio") {
