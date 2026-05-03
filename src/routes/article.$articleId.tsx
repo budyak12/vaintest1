@@ -1,14 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ActionBar } from "@/components/ActionBar";
 import { MediaItem } from "@/components/MediaPreview";
 import { ArticleContent } from "@/components/ArticleContent";
+import { ReadingProgress } from "@/components/ReadingProgress";
+import { TableOfContents } from "@/components/TableOfContents";
 import { Comments } from "@/components/Comments";
 import { useEntry, useIncrementView, useEntryAuthor } from "@/lib/queries";
 import { fullDate } from "@/lib/format";
 import { isUuid } from "@/lib/slug";
+import { extractHeadings } from "@/lib/article-toc";
 
 export const Route = createFileRoute("/article/$articleId")({
   component: ArticlePage,
