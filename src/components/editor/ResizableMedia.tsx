@@ -151,7 +151,7 @@ export const ResizableMedia = Node.create({
           src: a.src,
           alt: a.alt ?? "",
           title: a.title ?? "",
-          style: `width:100%;height:100%;display:block;object-fit:${a.fit}`,
+          style: `width:100%;height:100%;display:block;object-fit:${a.lockRatio === false ? "fill" : a.fit}`,
         },
       ],
     ];
