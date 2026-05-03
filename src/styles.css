@@ -188,6 +188,10 @@
     margin-top: 2rem;
     margin-bottom: 0.5rem;
   }
+  .prose-editorial h2[id],
+  .prose-editorial h3[id] {
+    scroll-margin-top: 5rem;
+  }
   .prose-editorial p {
     margin-bottom: 1.25rem;
   }
