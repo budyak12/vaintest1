@@ -125,7 +125,14 @@ export const ResizableMedia = Node.create({
       return [
         "figure",
         wrapperAttrs,
-        ["video", { src: a.src, controls: "true", style: "width:100%;height:100%" }],
+        [
+          "video",
+          {
+            src: a.src,
+            controls: "true",
+            style: `width:100%;height:100%;object-fit:${a.lockRatio === false ? "fill" : "contain"}`,
+          },
+        ],
       ];
     }
     if (a.kind === "audio") {
@@ -144,7 +151,7 @@ export const ResizableMedia = Node.create({
           src: a.src,
           alt: a.alt ?? "",
           title: a.title ?? "",
-          style: `width:100%;height:100%;display:block;object-fit:${a.fit}`,
+          style: `width:100%;height:100%;display:block;object-fit:${a.lockRatio === false ? "fill" : a.fit}`,
         },
       ],
     ];
@@ -345,7 +352,7 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             title={a.title ?? undefined}
             draggable={false}
             className="block h-full w-full select-none rounded-md"
-            style={{ objectFit: a.fit }}
+            style={{ objectFit: a.lockRatio === false ? "fill" : a.fit }}
           />
         ) : a.kind === "video" ? (
           <VideoPlayer src={a.src} className="h-full w-full" />
@@ -410,13 +417,17 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
             <span className="px-1 text-[10px] font-medium">100%</span>
           </TBtn>
           <TBtn
-            title={a.lockRatio ? "Unlock aspect ratio (Shift while dragging)" : "Lock aspect ratio"}
+            title={
+              a.lockRatio
+                ? "Lock is ON — resize keeps original proportions. Click to enable free stretch (or hold Shift while dragging)."
+                : "Free stretch is ON — drag any handle to resize without keeping proportions. Click to lock proportions back."
+            }
             onClick={toggleLock}
             active={a.lockRatio}
           >
             {a.lockRatio ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
           </TBtn>
-          {a.kind === "image" && (
+          {a.kind === "image" && a.lockRatio && (
             <TBtn
               title={a.fit === "cover" ? "Fit: cover (crop to fill)" : "Fit: contain (no crop)"}
               onClick={toggleFit}
