@@ -40,10 +40,10 @@ function ArticlePage() {
     }
   }, [entry, articleId, navigate]);
 
-  const { html: contentHtml, toc } = useMemo(
-    () => extractHeadings(entry?.contentHtml ?? ""),
-    [entry?.contentHtml],
-  );
+  const { html: contentHtml, toc } = useMemo(() => {
+    const raw = entry && entry.type === "article" ? entry.contentHtml : "";
+    return extractHeadings(raw ?? "");
+  }, [entry]);
   const articleRef = useRef<HTMLDivElement | null>(null);
 
   if (isLoading) {
