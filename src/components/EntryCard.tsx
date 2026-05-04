@@ -4,6 +4,7 @@ import { useTimeAgo } from "@/lib/format";
 import { ActionBar } from "./ActionBar";
 import { MediaPreview } from "./MediaPreview";
 import { renderTextWithEmojiAndStickers } from "@/lib/emoji";
+import { useReadingProgress } from "@/lib/reading-progress";
 import type { ShortPost, Article, Entry } from "@/lib/types";
 
 function Avatar({ name, url }: { name: string; url?: string }) {
