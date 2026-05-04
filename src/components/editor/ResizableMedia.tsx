@@ -415,12 +415,26 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
     [updateAttributes],
   );
 
+  // Inline style for wrap-free positioning in the editor mirror.
+  const wrapperStyle: React.CSSProperties = {};
+  if (a.align === "wrap-free") {
+    if (a.offsetY) wrapperStyle.marginTop = `${a.offsetY}px`;
+    const ox = a.offsetX ?? 0;
+    const side = ox < 50 ? "left" : "right";
+    const inset = side === "left" ? ox : 100 - ox;
+    (wrapperStyle as Record<string, string>)["--rm-free-side"] = side;
+    (wrapperStyle as Record<string, string>)["--rm-free-inset"] = `${inset}%`;
+  }
+
   return (
     <NodeViewWrapper
       as="div"
       className={wrapperClass}
       data-align={a.align}
       data-kind={a.kind}
+      data-offset-x={String(a.offsetX ?? 0)}
+      data-offset-y={String(a.offsetY ?? 0)}
+      style={wrapperStyle}
     >
       <div
         ref={containerRef}
