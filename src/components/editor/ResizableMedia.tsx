@@ -496,6 +496,13 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
           <TBtn title="Wrap right (text on left)" onClick={() => setAlign("wrap-right")} active={a.align === "wrap-right"}>
             <WrapText className="h-3.5 w-3.5" />
           </TBtn>
+          <TBtn
+            title="Free wrap (drag to position)"
+            onClick={() => setAlign("wrap-free")}
+            active={a.align === "wrap-free"}
+          >
+            <Move className="h-3.5 w-3.5" />
+          </TBtn>
           <TBtn title="Full width" onClick={() => setAlign("full")} active={a.align === "full"}>
             <Maximize2 className="h-3.5 w-3.5" />
           </TBtn>
