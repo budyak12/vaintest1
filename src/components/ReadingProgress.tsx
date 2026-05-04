@@ -46,8 +46,8 @@ export function ReadingProgress({
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-0 z-50 h-1 bg-foreground/10 shadow-sm sm:h-[3px]"
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      className="pointer-events-none fixed inset-x-0 z-50 h-1 bg-foreground/10 shadow-sm sm:h-[3px]"
+      style={{ top: "env(safe-area-inset-top, 0px)" }}
       aria-hidden="true"
     >
       <div
