@@ -40,6 +40,8 @@ interface MediaAttrs {
   align: MediaAlign;
   lockRatio: boolean;
   fit: ObjectFit;
+  offsetX: number; // 0..100 — horizontal % within column (wrap-free only)
+  offsetY: number; // px — vertical margin-top (wrap-free only)
 }
 
 declare module "@tiptap/core" {
