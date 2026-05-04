@@ -405,8 +405,10 @@
 @media (max-width: 640px) {
   .prose-editorial figure[data-resizable-media][data-align="wrap-left"],
   .prose-editorial figure[data-resizable-media][data-align="wrap-right"],
+  .prose-editorial figure[data-resizable-media][data-align="wrap-free"],
   .rm-editor .rm-wrapper.rm-align-wrap-left,
-  .rm-editor .rm-wrapper.rm-align-wrap-right {
+  .rm-editor .rm-wrapper.rm-align-wrap-right,
+  .rm-editor .rm-wrapper.rm-align-wrap-free {
     float: none;
     max-width: 100%;
     margin-left: 0;
