@@ -111,6 +111,8 @@ export const ResizableMedia = Node.create({
             height: node.style.height || node.getAttribute("data-height") || null,
             align: (node.getAttribute("data-align") as MediaAlign) || "center",
             fit: (node.getAttribute("data-fit") as ObjectFit) || "contain",
+            offsetX: parseInt(node.getAttribute("data-offset-x") ?? "0", 10) || 0,
+            offsetY: parseInt(node.getAttribute("data-offset-y") ?? "0", 10) || 0,
           };
         },
       },
@@ -119,6 +121,18 @@ export const ResizableMedia = Node.create({
 
   renderHTML({ HTMLAttributes, node }) {
     const a = node.attrs as MediaAttrs;
+    const styleParts: string[] = [];
+    if (a.width) styleParts.push(`width:${a.width}`);
+    if (a.height) styleParts.push(`height:${a.height}`);
+    if (a.align === "wrap-free") {
+      if (a.offsetY) styleParts.push(`margin-top:${a.offsetY}px`);
+      if (a.offsetX != null) {
+        const side = a.offsetX < 50 ? "left" : "right";
+        const inset = side === "left" ? a.offsetX : 100 - a.offsetX;
+        styleParts.push(`--rm-free-side:${side}`);
+        styleParts.push(`--rm-free-inset:${inset}%`);
+      }
+    }
     const wrapperAttrs = mergeAttributes(HTMLAttributes, {
       "data-resizable-media": "true",
       "data-kind": a.kind,
@@ -126,12 +140,9 @@ export const ResizableMedia = Node.create({
       "data-fit": a.fit,
       "data-width": a.width ?? "",
       "data-height": a.height ?? "",
-      style: [
-        a.width ? `width:${a.width}` : "",
-        a.height ? `height:${a.height}` : "",
-      ]
-        .filter(Boolean)
-        .join(";"),
+      "data-offset-x": String(a.offsetX ?? 0),
+      "data-offset-y": String(a.offsetY ?? 0),
+      style: styleParts.join(";"),
     });
 
     if (a.kind === "video") {
