@@ -11,6 +11,7 @@ import {
   AlignRight,
   Maximize2,
   WrapText,
+  Move,
   Lock,
   Unlock,
   Trash2,
@@ -25,7 +26,7 @@ import { ImageEditorModal } from "./ImageEditorModal";
 import { VideoEditorModal } from "./VideoEditorModal";
 import { VideoPlayer, AudioPlayer } from "../MediaPlayers";
 
-export type MediaAlign = "left" | "center" | "right" | "wrap-left" | "wrap-right" | "full";
+export type MediaAlign = "left" | "center" | "right" | "wrap-left" | "wrap-right" | "wrap-free" | "full";
 export type ResizableMediaKind = "image" | "video" | "audio";
 export type ObjectFit = "contain" | "cover";
 
