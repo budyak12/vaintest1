@@ -11,6 +11,7 @@ import {
   AlignRight,
   Maximize2,
   WrapText,
+  Move,
   Lock,
   Unlock,
   Trash2,
@@ -25,7 +26,7 @@ import { ImageEditorModal } from "./ImageEditorModal";
 import { VideoEditorModal } from "./VideoEditorModal";
 import { VideoPlayer, AudioPlayer } from "../MediaPlayers";
 
-export type MediaAlign = "left" | "center" | "right" | "wrap-left" | "wrap-right" | "full";
+export type MediaAlign = "left" | "center" | "right" | "wrap-left" | "wrap-right" | "wrap-free" | "full";
 export type ResizableMediaKind = "image" | "video" | "audio";
 export type ObjectFit = "contain" | "cover";
 
@@ -39,6 +40,8 @@ interface MediaAttrs {
   align: MediaAlign;
   lockRatio: boolean;
   fit: ObjectFit;
+  offsetX: number; // 0..100 — horizontal % within column (wrap-free only)
+  offsetY: number; // px — vertical margin-top (wrap-free only)
 }
 
 declare module "@tiptap/core" {
@@ -78,6 +81,16 @@ export const ResizableMedia = Node.create({
         parseHTML: (el) => (el.getAttribute("data-fit") as ObjectFit) || "contain",
         renderHTML: (attrs) => ({ "data-fit": attrs.fit }),
       },
+      offsetX: {
+        default: 0,
+        parseHTML: (el) => parseInt(el.getAttribute("data-offset-x") ?? "0", 10) || 0,
+        renderHTML: (attrs) => ({ "data-offset-x": String(attrs.offsetX ?? 0) }),
+      },
+      offsetY: {
+        default: 0,
+        parseHTML: (el) => parseInt(el.getAttribute("data-offset-y") ?? "0", 10) || 0,
+        renderHTML: (attrs) => ({ "data-offset-y": String(attrs.offsetY ?? 0) }),
+      },
     };
   },
 
@@ -98,6 +111,8 @@ export const ResizableMedia = Node.create({
             height: node.style.height || node.getAttribute("data-height") || null,
             align: (node.getAttribute("data-align") as MediaAlign) || "center",
             fit: (node.getAttribute("data-fit") as ObjectFit) || "contain",
+            offsetX: parseInt(node.getAttribute("data-offset-x") ?? "0", 10) || 0,
+            offsetY: parseInt(node.getAttribute("data-offset-y") ?? "0", 10) || 0,
           };
         },
       },
@@ -106,6 +121,18 @@ export const ResizableMedia = Node.create({
 
   renderHTML({ HTMLAttributes, node }) {
     const a = node.attrs as MediaAttrs;
+    const styleParts: string[] = [];
+    if (a.width) styleParts.push(`width:${a.width}`);
+    if (a.height) styleParts.push(`height:${a.height}`);
+    if (a.align === "wrap-free") {
+      if (a.offsetY) styleParts.push(`margin-top:${a.offsetY}px`);
+      if (a.offsetX != null) {
+        const side = a.offsetX < 50 ? "left" : "right";
+        const inset = side === "left" ? a.offsetX : 100 - a.offsetX;
+        styleParts.push(`--rm-free-side:${side}`);
+        styleParts.push(`--rm-free-inset:${inset}%`);
+      }
+    }
     const wrapperAttrs = mergeAttributes(HTMLAttributes, {
       "data-resizable-media": "true",
       "data-kind": a.kind,
@@ -113,12 +140,9 @@ export const ResizableMedia = Node.create({
       "data-fit": a.fit,
       "data-width": a.width ?? "",
       "data-height": a.height ?? "",
-      style: [
-        a.width ? `width:${a.width}` : "",
-        a.height ? `height:${a.height}` : "",
-      ]
-        .filter(Boolean)
-        .join(";"),
+      "data-offset-x": String(a.offsetX ?? 0),
+      "data-offset-y": String(a.offsetY ?? 0),
+      style: styleParts.join(";"),
     });
 
     if (a.kind === "video") {
@@ -192,10 +216,73 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
   const [showEditor, setShowEditor] = useState(false);
   const [showVideoEditor, setShowVideoEditor] = useState(false);
 
-  const setAlign = (align: MediaAlign) => updateAttributes({ align });
+  const setAlign = (align: MediaAlign) => {
+    const isWrap = align === "wrap-left" || align === "wrap-right" || align === "wrap-free";
+    const wasWrap =
+      a.align === "wrap-left" || a.align === "wrap-right" || a.align === "wrap-free";
+    const widthIsDefault = !a.width || a.width === "100%" || a.width === "auto";
+
+    if (isWrap && !wasWrap && widthIsDefault) {
+      updateAttributes({ align, width: "45%" });
+    } else if (!isWrap && wasWrap && a.width === "45%") {
+      updateAttributes({ align, width: "100%" });
+    } else {
+      updateAttributes({ align });
+    }
+  };
   const toggleLock = () => updateAttributes({ lockRatio: !a.lockRatio });
   const toggleFit = () =>
     updateAttributes({ fit: a.fit === "cover" ? "contain" : "cover" });
+
+  const onFreeDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (a.align !== "wrap-free") return;
+    const target = e.target as HTMLElement;
+    if (target.closest(".rm-handle, .rm-toolbar")) return;
+    e.preventDefault();
+
+    const isTouch = "touches" in e;
+    const startX = isTouch ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const startY = isTouch ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    const startOffsetX = a.offsetX ?? 0;
+    const startOffsetY = a.offsetY ?? 0;
+
+    const column =
+      (containerRef.current?.closest(".rm-editor, .prose-editorial") as HTMLElement | null) ??
+      containerRef.current?.parentElement;
+    const colWidth = column?.getBoundingClientRect().width ?? 600;
+
+    let raf = 0;
+    let pending: { x: number; y: number } | null = null;
+    const apply = () => {
+      raf = 0;
+      if (!pending) return;
+      updateAttributes({ offsetX: pending.x, offsetY: pending.y });
+      pending = null;
+    };
+
+    const move = (ev: MouseEvent | TouchEvent) => {
+      const cx = "touches" in ev ? ev.touches[0].clientX : (ev as MouseEvent).clientX;
+      const cy = "touches" in ev ? ev.touches[0].clientY : (ev as MouseEvent).clientY;
+      const dx = cx - startX;
+      const dy = cy - startY;
+      const newOffsetX = Math.max(0, Math.min(100, startOffsetX + (dx / colWidth) * 100));
+      const newOffsetY = startOffsetY + dy;
+      pending = { x: Math.round(newOffsetX), y: Math.round(newOffsetY) };
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    const up = () => {
+      if (raf) cancelAnimationFrame(raf);
+      apply();
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    window.addEventListener("touchmove", move, { passive: false });
+    window.addEventListener("touchend", up);
+  };
 
   const replaceFile = useCallback(() => {
     const input = document.createElement("input");
@@ -328,20 +415,37 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
     [updateAttributes],
   );
 
+  // Inline style for wrap-free positioning in the editor mirror.
+  const wrapperStyle: React.CSSProperties = {};
+  if (a.align === "wrap-free") {
+    if (a.offsetY) wrapperStyle.marginTop = `${a.offsetY}px`;
+    const ox = a.offsetX ?? 0;
+    const side = ox < 50 ? "left" : "right";
+    const inset = side === "left" ? ox : 100 - ox;
+    (wrapperStyle as Record<string, string>)["--rm-free-side"] = side;
+    (wrapperStyle as Record<string, string>)["--rm-free-inset"] = `${inset}%`;
+  }
+
   return (
     <NodeViewWrapper
       as="div"
       className={wrapperClass}
       data-align={a.align}
       data-kind={a.kind}
+      data-offset-x={String(a.offsetX ?? 0)}
+      data-offset-y={String(a.offsetY ?? 0)}
+      style={wrapperStyle}
     >
       <div
         ref={containerRef}
         className="rm-frame relative"
+        onMouseDown={onFreeDragStart}
+        onTouchStart={onFreeDragStart}
         style={{
           width: a.width ?? "100%",
           height: a.height ?? undefined,
           maxWidth: "100%",
+          cursor: a.align === "wrap-free" && editable ? "move" : undefined,
         }}
       >
         {a.kind === "image" ? (
@@ -405,6 +509,13 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
           </TBtn>
           <TBtn title="Wrap right (text on left)" onClick={() => setAlign("wrap-right")} active={a.align === "wrap-right"}>
             <WrapText className="h-3.5 w-3.5" />
+          </TBtn>
+          <TBtn
+            title="Free wrap (drag to position)"
+            onClick={() => setAlign("wrap-free")}
+            active={a.align === "wrap-free"}
+          >
+            <Move className="h-3.5 w-3.5" />
           </TBtn>
           <TBtn title="Full width" onClick={() => setAlign("full")} active={a.align === "full"}>
             <Maximize2 className="h-3.5 w-3.5" />

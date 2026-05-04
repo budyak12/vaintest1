@@ -1,11 +1,18 @@
 import { useEffect, useState, type RefObject } from "react";
+import { setReadingProgress } from "@/lib/reading-progress";
 
 /**
  * Thin top-of-viewport progress bar tracking how much of the referenced
  * element has been scrolled past. Element-scoped (not document-scoped) so
  * surrounding chrome (header, comments) doesn't skew the percentage.
  */
-export function ReadingProgress({ targetRef }: { targetRef: RefObject<HTMLElement | null> }) {
+export function ReadingProgress({
+  targetRef,
+  entryId,
+}: {
+  targetRef: RefObject<HTMLElement | null>;
+  entryId?: string;
+}) {
   const [pct, setPct] = useState(0);
 
   useEffect(() => {
@@ -30,8 +37,19 @@ export function ReadingProgress({ targetRef }: { targetRef: RefObject<HTMLElemen
     };
   }, [targetRef]);
 
+  // Persist the max progress per entry to localStorage (debounced).
+  useEffect(() => {
+    if (!entryId) return;
+    const t = setTimeout(() => setReadingProgress(entryId, pct), 250);
+    return () => clearTimeout(t);
+  }, [pct, entryId]);
+
   return (
-    <div className="fixed inset-x-0 top-0 z-50 h-0.5 bg-transparent" aria-hidden="true">
+    <div
+      className="pointer-events-none fixed inset-x-0 z-50 h-1 bg-foreground/10 shadow-sm sm:h-[3px]"
+      style={{ top: "env(safe-area-inset-top, 0px)" }}
+      aria-hidden="true"
+    >
       <div
         className="h-full bg-foreground transition-[width] duration-100 ease-out"
         style={{ width: `${pct}%` }}
