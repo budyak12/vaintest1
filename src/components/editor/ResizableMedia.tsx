@@ -216,10 +216,73 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
   const [showEditor, setShowEditor] = useState(false);
   const [showVideoEditor, setShowVideoEditor] = useState(false);
 
-  const setAlign = (align: MediaAlign) => updateAttributes({ align });
+  const setAlign = (align: MediaAlign) => {
+    const isWrap = align === "wrap-left" || align === "wrap-right" || align === "wrap-free";
+    const wasWrap =
+      a.align === "wrap-left" || a.align === "wrap-right" || a.align === "wrap-free";
+    const widthIsDefault = !a.width || a.width === "100%" || a.width === "auto";
+
+    if (isWrap && !wasWrap && widthIsDefault) {
+      updateAttributes({ align, width: "45%" });
+    } else if (!isWrap && wasWrap && a.width === "45%") {
+      updateAttributes({ align, width: "100%" });
+    } else {
+      updateAttributes({ align });
+    }
+  };
   const toggleLock = () => updateAttributes({ lockRatio: !a.lockRatio });
   const toggleFit = () =>
     updateAttributes({ fit: a.fit === "cover" ? "contain" : "cover" });
+
+  const onFreeDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (a.align !== "wrap-free") return;
+    const target = e.target as HTMLElement;
+    if (target.closest(".rm-handle, .rm-toolbar")) return;
+    e.preventDefault();
+
+    const isTouch = "touches" in e;
+    const startX = isTouch ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const startY = isTouch ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    const startOffsetX = a.offsetX ?? 0;
+    const startOffsetY = a.offsetY ?? 0;
+
+    const column =
+      (containerRef.current?.closest(".rm-editor, .prose-editorial") as HTMLElement | null) ??
+      containerRef.current?.parentElement;
+    const colWidth = column?.getBoundingClientRect().width ?? 600;
+
+    let raf = 0;
+    let pending: { x: number; y: number } | null = null;
+    const apply = () => {
+      raf = 0;
+      if (!pending) return;
+      updateAttributes({ offsetX: pending.x, offsetY: pending.y });
+      pending = null;
+    };
+
+    const move = (ev: MouseEvent | TouchEvent) => {
+      const cx = "touches" in ev ? ev.touches[0].clientX : (ev as MouseEvent).clientX;
+      const cy = "touches" in ev ? ev.touches[0].clientY : (ev as MouseEvent).clientY;
+      const dx = cx - startX;
+      const dy = cy - startY;
+      const newOffsetX = Math.max(0, Math.min(100, startOffsetX + (dx / colWidth) * 100));
+      const newOffsetY = startOffsetY + dy;
+      pending = { x: Math.round(newOffsetX), y: Math.round(newOffsetY) };
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    const up = () => {
+      if (raf) cancelAnimationFrame(raf);
+      apply();
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    window.addEventListener("touchmove", move, { passive: false });
+    window.addEventListener("touchend", up);
+  };
 
   const replaceFile = useCallback(() => {
     const input = document.createElement("input");
