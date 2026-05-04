@@ -81,6 +81,16 @@ export const ResizableMedia = Node.create({
         parseHTML: (el) => (el.getAttribute("data-fit") as ObjectFit) || "contain",
         renderHTML: (attrs) => ({ "data-fit": attrs.fit }),
       },
+      offsetX: {
+        default: 0,
+        parseHTML: (el) => parseInt(el.getAttribute("data-offset-x") ?? "0", 10) || 0,
+        renderHTML: (attrs) => ({ "data-offset-x": String(attrs.offsetX ?? 0) }),
+      },
+      offsetY: {
+        default: 0,
+        parseHTML: (el) => parseInt(el.getAttribute("data-offset-y") ?? "0", 10) || 0,
+        renderHTML: (attrs) => ({ "data-offset-y": String(attrs.offsetY ?? 0) }),
+      },
     };
   },
 
