@@ -334,16 +334,26 @@
 .rm-editor .rm-wrapper.rm-align-full .rm-frame { display: block; width: 100% !important; }
 .rm-editor .rm-wrapper.rm-align-wrap-left {
   float: left;
-  margin: 0.25rem 1.5rem 1rem 0;
-  max-width: 60%;
+  margin: 0.25rem 1.25rem 0.75rem 0;
+  max-width: 50%;
 }
 .rm-editor .rm-wrapper.rm-align-wrap-right {
   float: right;
-  margin: 0.25rem 0 1rem 1.5rem;
-  max-width: 60%;
+  margin: 0.25rem 0 0.75rem 1.25rem;
+  max-width: 50%;
+}
+.rm-editor .rm-wrapper.rm-align-wrap-free {
+  float: var(--rm-free-side, left);
+  max-width: 50%;
+  margin: 0.25rem 1.25rem 0.75rem 1.25rem;
+}
+.rm-editor .rm-wrapper.rm-align-wrap-free:not([data-offset-x="0"]):not([data-offset-x="100"]) {
+  margin-left: var(--rm-free-inset, 0);
+  margin-right: var(--rm-free-inset, 0);
 }
 .rm-editor .rm-wrapper.rm-align-wrap-left .rm-frame,
-.rm-editor .rm-wrapper.rm-align-wrap-right .rm-frame {
+.rm-editor .rm-wrapper.rm-align-wrap-right .rm-frame,
+.rm-editor .rm-wrapper.rm-align-wrap-free .rm-frame {
   display: block;
   width: 100%;
 }
