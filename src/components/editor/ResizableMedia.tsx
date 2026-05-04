@@ -425,10 +425,13 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
       <div
         ref={containerRef}
         className="rm-frame relative"
+        onMouseDown={onFreeDragStart}
+        onTouchStart={onFreeDragStart}
         style={{
           width: a.width ?? "100%",
           height: a.height ?? undefined,
           maxWidth: "100%",
+          cursor: a.align === "wrap-free" && editable ? "move" : undefined,
         }}
       >
         {a.kind === "image" ? (
