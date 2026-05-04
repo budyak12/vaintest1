@@ -100,6 +100,7 @@ export function PostCard({ post }: { post: ShortPost }) {
 
 export function ArticleCard({ article }: { article: Article }) {
   const { data: author } = useEntryAuthor(article.authorId);
+  const readPct = useReadingProgress(article.id);
   return (
     <Link
       to="/article/$articleId"
@@ -131,7 +132,27 @@ export function ArticleCard({ article }: { article: Article }) {
           )}
           <div className="mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
             Article · {article.readingMinutes} min read
+            {readPct > 0 && readPct < 95 && (
+              <>
+                {" · "}
+                <span className="text-foreground">{readPct}% read</span>
+              </>
+            )}
+            {readPct >= 95 && (
+              <>
+                {" · "}
+                <span className="text-foreground">read</span>
+              </>
+            )}
           </div>
+          {readPct > 0 && readPct < 95 && (
+            <div className="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-foreground/10">
+              <div
+                className="h-full bg-foreground transition-[width] duration-200 ease-out"
+                style={{ width: `${readPct}%` }}
+              />
+            </div>
+          )}
           <ActionBar entry={article} className="mt-4 -ml-2" />
         </div>
       </div>
