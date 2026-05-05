@@ -72,7 +72,8 @@ function ArticlePage() {
         <ArrowLeft className="h-3.5 w-3.5" /> Back
       </Link>
 
-      <div ref={articleRef} className="lg:grid lg:grid-cols-[minmax(0,1fr)_14rem] lg:gap-10">
+      <TableOfContents items={toc} />
+      <div ref={articleRef}>
         <div className="min-w-0">
           <header className="mb-8">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -144,8 +145,6 @@ function ArticlePage() {
             </div>
           )}
         </div>
-
-        <TableOfContents items={toc} />
       </div>
 
       <div className="hairline-t mt-6 pt-4">

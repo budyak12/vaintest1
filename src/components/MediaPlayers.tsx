@@ -373,6 +373,7 @@ export function VideoPlayer({
         poster={poster}
         playsInline
         preload="metadata"
+        crossOrigin="anonymous"
         onClick={toggle}
         className="block h-full w-full cursor-pointer"
       />
@@ -520,17 +521,17 @@ export function AudioPlayer({
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center gap-3 rounded-md border border-border bg-subtle px-3 py-2.5",
+        "flex w-full items-center gap-2 rounded-md border border-border bg-subtle px-2.5 py-2 sm:gap-3 sm:px-3 sm:py-2.5",
         className,
       )}
     >
       {/* Hidden native audio element drives playback */}
-      <audio ref={audioRef} src={src} preload="metadata" className="hidden" />
+      <audio ref={audioRef} src={src} crossOrigin="anonymous" preload="metadata" className="hidden" />
 
       <button
         type="button"
         onClick={toggle}
-        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border bg-background text-foreground transition-all hover:scale-[1.03] hover:bg-foreground hover:text-background"
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border bg-background text-foreground transition-all hover:scale-[1.03] hover:bg-foreground hover:text-background sm:h-10 sm:w-10"
         title={playing ? "Pause" : "Play"}
       >
         {playing ? (
@@ -542,7 +543,7 @@ export function AudioPlayer({
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex min-w-0 items-center gap-2">
-          <Music className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <Music className="hidden h-3.5 w-3.5 shrink-0 text-muted-foreground sm:block" />
           {editableTitle ? (
             <input
               type="text"
@@ -581,12 +582,14 @@ export function AudioPlayer({
 
       <div className="flex shrink-0 items-center">
         <RateMenu rate={rate} onChange={onRate} />
-        <VolumeControl
-          volume={volume}
-          muted={muted}
-          onVolume={onVol}
-          onToggleMute={toggleMute}
-        />
+        <div className="hidden sm:block">
+          <VolumeControl
+            volume={volume}
+            muted={muted}
+            onVolume={onVol}
+            onToggleMute={toggleMute}
+          />
+        </div>
       </div>
     </div>
   );

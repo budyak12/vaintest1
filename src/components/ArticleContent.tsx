@@ -72,7 +72,7 @@ export function ArticleContent({ html, className }: { html: string; className?: 
         const player: ReactElement = isSticker ? (
           <Sticker src={src} size={128} />
         ) : mediaTag.name === "audio" ? (
-          <AudioPlayer src={src} title={title} className="h-full w-full" />
+          <AudioPlayer src={src} title={title} />
         ) : (
           <VideoPlayer src={src} className="h-full w-full" />
         );

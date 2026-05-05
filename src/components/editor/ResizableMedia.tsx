@@ -153,7 +153,10 @@ export const ResizableMedia = Node.create({
           "video",
           {
             src: a.src,
-            controls: "true",
+            controls: "",
+            crossorigin: "anonymous",
+            playsinline: "",
+            preload: "metadata",
             style: `width:100%;height:100%;object-fit:${a.lockRatio === false ? "fill" : "contain"}`,
           },
         ],
@@ -163,7 +166,16 @@ export const ResizableMedia = Node.create({
       return [
         "figure",
         wrapperAttrs,
-        ["audio", { src: a.src, controls: "true", style: "width:100%" }],
+        [
+          "audio",
+          {
+            src: a.src,
+            controls: "",
+            crossorigin: "anonymous",
+            preload: "metadata",
+            style: "width:100%",
+          },
+        ],
       ];
     }
     return [
@@ -464,7 +476,6 @@ function MediaNodeView({ node, updateAttributes, deleteNode, selected, editor }:
           <AudioPlayer
             src={a.src}
             title={a.alt ?? undefined}
-            className="h-full"
             editableTitle={editable}
             onTitleChange={(next) => updateAttributes({ alt: next })}
           />

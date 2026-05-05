@@ -26,7 +26,7 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
   if (items.length < 2) return null;
 
   return (
-    <aside className="sticky top-24 hidden w-56 shrink-0 lg:block">
+    <aside className="pointer-events-auto fixed right-8 top-28 z-30 hidden w-52 xl:block">
       <div className="mb-3 text-[11px] uppercase tracking-wider text-muted-foreground">
         В этой статье
       </div>
